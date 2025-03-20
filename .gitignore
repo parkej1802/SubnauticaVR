@@ -77,3 +77,8 @@ DerivedDataCache/*
 package/*
 Plugins/MetaXR/
 Plugins/MetaXRPlatform/
+
+# Contents Assets Ignore
+Content/Waterline/
+Content/Vefects/
+Content/Underwater/
