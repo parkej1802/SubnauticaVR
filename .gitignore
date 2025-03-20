@@ -72,3 +72,8 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# XR Related Files Gitignore
+package/*
+Plugins/MetaXR/
+Plugins/MetaXRPlatform/
