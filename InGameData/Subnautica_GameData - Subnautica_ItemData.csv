@@ -1,0 +1,13 @@
+ID,Name,Type,Area,Rarity,Required Equipment,Crafting Materials,Effects,Description
+101,Stone,Resource,Upper,Common,None,,,A basic resource.
+102,Metal Scrap,Resource,Upper,Common,None,,,Crafting material.
+103,Copper,Resource,Middle,Rare,Pickaxe,,,Needed for crafting electronic components.
+104,Silver,Resource,Middle,Rare,Pickaxe,,,Needed for crafting advanced equipment.
+105,Crystal Fragment,Resource,Lower,Very Rare,Laser Cutter,,,Used for upgrading advanced equipment.
+106,Battery,Resource,Middle,Common,None,,,Used for powering electronic devices or equipment.
+201,Knife,Item,,Common,Metal Scrap x2,,Attack Power +10,Basic melee weapon. Can attack enemies up close.
+202,Fins,Equipment,,Common,"Rubber x2, Cloth x1",,Swim Speed +20%,Increases swimming speed. Helps to move efficiently underwater.
+203,Oxygen Tank,Equipment,,Common,"Metal Scrap x3, Silicone x1",,Oxygen +50%,Increases underwater time by boosting oxygen levels.
+204,Laser Cutter,Tool,,Rare,"Crystal Fragment x1, Battery x1",,Enables specific resource gathering,A tool for gathering specific resources and minerals.
+301,Deep Sea Oxygen Tank,Equipment,,Very Rare,"Silver x2, Silicone x2",,Oxygen +100%,"Essential for deep-sea exploration, greatly increases oxygen supply."
+302,Flashlight,Equipment,,Common,Battery x2,,"Light +20%, Expands View",Provides light in dark areas and expands vision.
