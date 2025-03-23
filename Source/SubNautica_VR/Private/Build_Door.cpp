@@ -7,21 +7,15 @@
 ABuild_Door::ABuild_Door()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
-}
+	UStaticMeshComponent* StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorMesh"));
+	RootComponent = StaticMeshComponent;
 
-// Called when the game starts or when spawned
-void ABuild_Door::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ABuild_Door::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Script/Engine.StaticMesh'/Game/UP/BuildingComponent/BuildAsset/door.door'"));
+	if (MeshAsset.Succeeded())
+	{
+		StaticMeshComponent->SetStaticMesh(MeshAsset.Object);
+	}
 }
 

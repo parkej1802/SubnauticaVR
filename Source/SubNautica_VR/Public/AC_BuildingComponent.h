@@ -89,7 +89,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_SpawnBuilding;
 
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_WheelUp;
 
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_WheelDown;
+
+	void WheelUp(const struct FInputActionValue& InputValue);
+	void WheelDown(const struct FInputActionValue& InputValue);
 
 // Delegate
 public:

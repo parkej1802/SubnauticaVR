@@ -67,4 +67,6 @@ public:
 	void PlayerCatchTrace();
 
 	bool bIsCatch = false;
+
+	TMap<AActor*, float> HitActors;
 };

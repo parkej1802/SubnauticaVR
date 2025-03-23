@@ -181,6 +181,8 @@ void UAC_PlayerAction::PlayerCatchTrace()
 
 	QueryParams.AddIgnoredActor(PlayerCharacter);
 
+	TMap<AActor*, float> HitActorTimeMap;
+
 	for (int32 i = 0; i < 5; i++) {
 		TraceDistance -= 25;
 		SphereRadius -= 5;
@@ -202,6 +204,25 @@ void UAC_PlayerAction::PlayerCatchTrace()
 		if (bHit)
 		{
 			DrawDebugSphere(GetWorld(), HitResult.Location, SphereRadius, 12, FColor::Green, false, 0.1f);
+
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor)
+			{
+				if (HitActors.Contains(HitActor))
+				{
+					HitActors[HitActor] += GetWorld()->GetDeltaSeconds();
+				}
+				else
+				{
+					HitActors.Add(HitActor, 0.0f);
+				}
+
+				if (HitActors[HitActor] >= 3.0f)
+				{
+					HitActor->Destroy();
+					HitActors.Remove(HitActor);
+				}
+			}
 		}
 		else
 		{

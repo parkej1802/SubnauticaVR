@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
+#include "Building_Interface.h"
+#include "DT_BuildingComponent.h"
 #include "Build_WallDoor.generated.h"
 
 UCLASS()
-class SUBNAUTICA_VR_API ABuild_WallDoor : public AActor
+class SUBNAUTICA_VR_API ABuild_WallDoor : public AActor, public IBuilding_Interface
 {
 	GENERATED_BODY()
 	
@@ -15,12 +18,25 @@ public:
 	// Sets default values for this actor's properties
 	ABuild_WallDoor();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	class UBoxComponent* BoxComp1;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	class UBoxComponent* BoxComp2;
 
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	class UBoxComponent* BoxComp3;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	class UBoxComponent* BoxComp4;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	class UBoxComponent* DoorBoxComp;
+
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<UBoxComponent*> BoxCompArray;
+
+
+	virtual TArray<UBoxComponent*> GetBoxCollision_Implementation() override;
 };

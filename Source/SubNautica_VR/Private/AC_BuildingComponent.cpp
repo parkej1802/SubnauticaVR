@@ -30,6 +30,16 @@ UAC_BuildingComponent::UAC_BuildingComponent()
 
 	FString DataTablePath = TEXT("/Script/Engine.DataTable'/Game/UP/BuildingComponent/DT_Building.DT_Building'");
 	BuildableDT = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *DataTablePath));
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_WheelDown(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_WheelDown.IA_WheelDown'"));
+	if (TempIA_WheelDown.Succeeded()) {
+		IA_WheelDown = TempIA_WheelDown.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_WheelUp(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_WheelUp.IA_WheelUp'"));
+	if (TempIA_WheelUp.Succeeded()) {
+		IA_WheelUp = TempIA_WheelUp.Object;
+	}
 }
 
 // Called when the game starts
@@ -71,6 +81,38 @@ void UAC_BuildingComponent::SetupInputBinding(class UEnhancedInputComponent* Inp
 {
 	Input->BindAction(IA_BuildMode, ETriggerEvent::Started, this, &UAC_BuildingComponent::LaunchBuildMode);
 	Input->BindAction(IA_SpawnBuilding, ETriggerEvent::Started, this, &UAC_BuildingComponent::SpawnBuild);
+	Input->BindAction(IA_WheelDown, ETriggerEvent::Started, this, &UAC_BuildingComponent::WheelDown);
+	Input->BindAction(IA_WheelUp, ETriggerEvent::Started, this, &UAC_BuildingComponent::WheelUp);
+}
+
+void UAC_BuildingComponent::WheelUp(const struct FInputActionValue& InputValue)
+{
+	if (IsBuildMode) {
+		int32 BuildDataSize = BuildableDataArray.Num() - 1;
+		int32 BuildIndex = BuildID;
+
+		if (BuildIndex < BuildDataSize) {
+			BuildIndex += 1;
+			BuildID = BuildIndex;
+		}
+
+		ChangeMesh();
+	}
+}
+
+void UAC_BuildingComponent::WheelDown(const struct FInputActionValue& InputValue)
+{
+	if (IsBuildMode) {
+		int32 BuildDataSize = BuildableDataArray.Num() - 1;
+		int32 BuildIndex = BuildID;
+
+		if (BuildIndex > 0) {
+			BuildIndex -= 1;
+			BuildID = BuildIndex;
+		}
+
+		ChangeMesh();
+	}
 }
 
 void UAC_BuildingComponent::SetBuildTransform(FTransform* BT)
@@ -103,7 +145,7 @@ void UAC_BuildingComponent::SpawnBuildGhost(/*FName BuildingName*/)
 		{
 			BuildGhost = NewBuildGhost;
 
-			FBuildingStruct& BuildingData = BuildableDataArray[0];
+			FBuildingStruct& BuildingData = BuildableDataArray[BuildID];
 
 			UStaticMesh* MeshAsset = BuildingData.Mesh;
 
@@ -138,7 +180,7 @@ void UAC_BuildingComponent::BuildCycle(/*FName BuildingName*/)
 		CollisionParams.AddIgnoredActor(OwnerActor);
 	}
 
-	FBuildingStruct& BuildingData = BuildableDataArray[0];
+	FBuildingStruct& BuildingData = BuildableDataArray[BuildID];
 	TEnumAsByte<ETraceTypeQuery> TraceInfo = BuildingData.TraceType;
 
 	ECollisionChannel CollisionChannel = UEngineTypes::ConvertToCollisionChannel(BuildingData.TraceType);
@@ -222,7 +264,6 @@ void UAC_BuildingComponent::LaunchBuildMode(/*FName BuildingName*/)
 {
 	if (!IsBuildMode) {
 		IsBuildMode = true;
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("B Pressed"));
 		SpawnBuildGhost();
 		OnBuildCycle.BindUObject(this, &UAC_BuildingComponent::BuildCycle);
 		BuildCycle();
@@ -264,14 +305,19 @@ void UAC_BuildingComponent::GetDataTableRowNames()
 
 void UAC_BuildingComponent::ChangeMesh()
 {
+	if (IsValid(BuildGhost)) {
+		FBuildingStruct& BuildingData = BuildableDataArray[BuildID];
 
+		UStaticMesh* MeshAsset = BuildingData.Mesh;
+		BuildGhost->SetStaticMesh(MeshAsset);
+	}
 }
 
 void UAC_BuildingComponent::SpawnBuild(/*FName BuildingName*/)
 {
 	if (IsBuildMode && CanBuild) {
 
-		FBuildingStruct& BuildingData = BuildableDataArray[0];
+		FBuildingStruct& BuildingData = BuildableDataArray[BuildID];
 
 		TSubclassOf<AActor> BuildingActor = BuildingData.Actor;
 
