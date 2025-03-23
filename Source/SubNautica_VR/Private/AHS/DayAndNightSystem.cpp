@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "DayAndNightSystem.h"
+#include "AHS/DayAndNightSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DirectionalLight.h"
 
