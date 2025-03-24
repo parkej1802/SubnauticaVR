@@ -6,6 +6,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "AC_BuildingComponent.h"
 #include "AC_PlayerAction.h"
+#include "PlayerStatUI.h"
 #include "GameFramework/CharacterMovementComponent.h" 
 
 // Sets default values
@@ -33,11 +34,46 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
+
+	ShowPlayerUI();
 }
 
 // Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+int APlayerCharacter::CalculateDepth(float DeltaSecond)
+{
+	float calculateZ = 0.0f - GetActorLocation().Z;
+
+	int meter = static_cast<int>(calculateZ) / 100;
+
+	currentOxygenTime += DeltaSecond;
+	if (meter > 0 && currentOxygenTime >= OxygenTime && CurrentOxygen > 0) {
+		
+		CurrentOxygen -= 1;
+		currentOxygenTime = 0.0f;
+	}
+	else if (meter < 0 && currentOxygenTime >= OxygenTime && CurrentOxygen < 100) {
+		CurrentOxygen += 1;
+		currentOxygenTime = 0.0f;
+	}
+
+	return meter;
+}
+
+void APlayerCharacter::ShowPlayerUI()
+{
+	if (PlayerMainWidget)
+	{
+		PlayerMainUI = CreateWidget<UPlayerStatUI>(GetWorld(), PlayerMainWidget);
+	}
+	if (PlayerMainUI)
+	{
+		PlayerMainUI->AddToViewport();
+	}
 }
 

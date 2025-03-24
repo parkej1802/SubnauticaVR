@@ -33,6 +33,24 @@ public:
 
 	bool bIsSwimming = true;
 
+	int32 WaterDepth = 0.0f;
+
+	int CalculateDepth(float DeltaSecond);
+
+	int32 MaxOxygen = 100;
+
+	int32 CurrentOxygen = MaxOxygen;
+
+	float currentOxygenTime = 0.f;
+	float OxygenTime = 0.25f;
+
+	void ShowPlayerUI();
+
+	UPROPERTY(EditAnywhere, Category = MainWidget)
+	TSubclassOf<UUserWidget> PlayerMainWidget;
+
+	class UPlayerStatUI* PlayerMainUI;
+
 // PlayerAction
 public:
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAction)
