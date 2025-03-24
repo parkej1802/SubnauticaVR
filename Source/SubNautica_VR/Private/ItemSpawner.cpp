@@ -1,71 +1,104 @@
 #include "ItemSpawner.h"
-#include "Engine/World.h"
-#include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
 #include "ItemActor.h"
-#include "ItemData.h" // ItemData 구조체가 정의된 헤더 파일
+#include "ItemSpawnPoint.h"
 
+// Sets default values
 AItemSpawner::AItemSpawner()
 {
     PrimaryActorTick.bCanEverTick = false;
-
-    // 기본 값 설정
-    SpawnAreaMin = FVector(-500.f, -500.f, 0.f);
-    SpawnAreaMax = FVector(500.f, 500.f, 0.f);
 }
 
+// Called when the game starts or when spawned
 void AItemSpawner::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 아이템 스폰을 시작
-    SpawnItemAtRandomLocation();
+    // 스폰 포인트 찾기
+    FindSpawnPoints();
+
+    // 랜덤 시간 후 아이템 스폰 시작
+    float CreateTime = FMath::RandRange(MinTime, MaxTime);
+    GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &AItemSpawner::CreateItem, CreateTime);
 }
 
-void AItemSpawner::SpawnItemAtRandomLocation()
+void AItemSpawner::Tick(float DeltaTime)
 {
-    // 랜덤 위치 생성
-    FVector RandomLocation = FMath::RandPointInBox(FBox(SpawnAreaMin, SpawnAreaMax));
+    Super::Tick(DeltaTime);
 
-    // 아이템 ID 목록을 순회하여 아이템을 소환
-    for (int32 ItemID : ItemIDs)
+    // 아이템 스폰 주기를 관리하는 코드 추가
+    if (AllItemsInLevel < 5)  // 예: 5개 이하로 아이템이 있을 때만 스폰
     {
-        SpawnItem(ItemID, RandomLocation);
+        // 랜덤 타이머로 아이템 스폰
+        float SpawnTime = FMath::RandRange(MinTime, MaxTime);
+        GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &AItemSpawner::CreateItem, SpawnTime, false);
     }
 }
 
-void AItemSpawner::SpawnItem(int32 ItemID, const FVector& SpawnLocation)
+void AItemSpawner::FindSpawnPoints()
 {
-    if (ItemDataTable == nullptr)
+    // 검색된 스폰 포인트를 저장할 배열
+    TArray<AActor*> allActors;
+
+    // AItemSpawnPoint 타입의 액터만 찾기
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnPoint::StaticClass(), allActors);
+
+    // 찾은 액터들을 배열에 추가
+    for (auto spawn : allActors)
     {
-        UE_LOG(LogTemp, Warning, TEXT("ItemDataTable이 설정되지 않음"));
+        SpawnPoints.Add(Cast<AItemSpawnPoint>(spawn));
+    }
+}
+
+void AItemSpawner::CreateItem()
+{
+    if (AllItemsInLevel >= 5)
+    {
+        float CreateTime = FMath::RandRange(MinTime, MaxTime);
+        GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &AItemSpawner::CreateItem, CreateTime);
         return;
     }
 
-    // DataTable에서 해당 ID의 아이템 정보를 찾음
-    FItemData* ItemData = ItemDataTable->FindRow<FItemData>(FName(*FString::FromInt(ItemID)), TEXT(""));
-    if (ItemData)
+    if (SpawnPoints.Num() == 0 || SpawnableItemClasses.Num() == 0)
     {
-        // 아이템 정보 출력 (GEngine을 사용하여 화면에 출력)
-        FString ItemInfo = FString::Printf(TEXT("아이템 이름: %s, 희귀도: %d"), *ItemData->Name, (int32)ItemData->Rarity);
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, ItemInfo);
-
-        // 아이템 Actor를 생성
-        AItemActor* NewItem = GetWorld()->SpawnActor<AItemActor>(AItemActor::StaticClass(), SpawnLocation, FRotator::ZeroRotator);
-        if (NewItem)
-        {
-            // 아이템 데이터 설정
-            NewItem->ItemID = ItemID;
-            NewItem->ItemName = ItemData->Name;
-            NewItem->Rarity = ItemData->Rarity;
-
-            // 아이템 초기화 함수 호출 (필요한 경우)
-            NewItem->InitializeItem(ItemData);
-
-            UE_LOG(LogTemp, Log, TEXT("아이템 생성: %s, 희귀도: %d"), *ItemData->Name, (int32)ItemData->Rarity);
-        }
+        return;
     }
-    else
+
+    int32 Index;
+    do
     {
-        UE_LOG(LogTemp, Warning, TEXT("ID %d에 해당하는 아이템을 찾을 수 없음"), ItemID);
+        Index = FMath::RandRange(0, SpawnPoints.Num() - 1);
+    } while (UsedIndices.Contains(Index) && UsedIndices.Num() < SpawnPoints.Num());
+
+    UsedIndices.Add(Index);
+    SpawnItemAtLocation(Index);
+
+    AllItemsInLevel++;
+
+    float CreateTime = FMath::RandRange(MinTime, MaxTime);
+    GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &AItemSpawner::CreateItem, CreateTime);
+}
+
+void AItemSpawner::SpawnItemAtLocation(int32 Index)
+{
+    if (!SpawnPoints.IsValidIndex(Index) || SpawnableItemClasses.Num() == 0)
+    {
+        return;
     }
+
+    FVector SpawnLocation = SpawnPoints[Index]->GetActorLocation();
+    TSubclassOf<AItemActor> ItemClass = SpawnableItemClasses[FMath::RandRange(0, SpawnableItemClasses.Num() - 1)];
+
+    AItemActor* NewItem = GetWorld()->SpawnActor<AItemActor>(ItemClass, SpawnLocation, FRotator::ZeroRotator);
+    if (NewItem)
+    {
+        NewItem->SetSpawnIndex(Index);
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawned Item: %s at Index: %d"), *NewItem->GetName(), Index));
+    }
+}
+
+void AItemSpawner::FreeSpawnPoint(int32 Index)
+{
+    UsedIndices.Remove(Index);
+    AllItemsInLevel--;
 }

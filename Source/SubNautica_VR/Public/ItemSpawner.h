@@ -2,42 +2,55 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Engine/DataTable.h"  // DataTable 사용
-#include "ItemData.h"          // FItemData 포함
-#include "ItemActor.h"         // AItemActor 포함
 #include "ItemSpawner.generated.h"
+
+class AItemActor; // 전방 선언
 
 UCLASS()
 class SUBNAUTICA_VR_API AItemSpawner : public AActor
 {
     GENERATED_BODY()
-
+    
 public:    
     AItemSpawner();
 
 protected:
     virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
 
-public:
-    //아이템 스폰할 범위
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-    FVector SpawnAreaMin;
+    /** 스폰할 수 있는 아이템 클래스 목록 */
+    UPROPERTY(EditAnywhere, Category = "Item Spawner")
+    TArray<TSubclassOf<AItemActor>> SpawnableItemClasses;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-    FVector SpawnAreaMax;
+    /** 스폰할 수 있는 위치 목록 */
+    UPROPERTY(VisibleAnywhere, Category = "Item Spawner")
+    TArray<AActor*> SpawnPoints;
 
-    //스폰할 아이템 데이터 테이블
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-    UDataTable* ItemDataTable;
+    /** 현재 사용 중인 스폰 위치 */
+    TSet<int32> UsedIndices;
 
-    //스폰할 아이템 ID 목록
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-    TArray<int32> ItemIDs;
+    /** 현재 맵에 존재하는 아이템 개수 */
+    int32 AllItemsInLevel = 0;
 
-    //아이템 소환 함수
-    void SpawnItemAtRandomLocation();
+    /** 스폰 타이머 핸들 */
+    FTimerHandle SpawnTimerHandle;
 
-private:
-    //아이템을 생성하는 함수
-    void SpawnItem(int32 ItemID, const FVector& SpawnLocation);
+    /** 아이템을 스폰할 최소, 최대 시간 */
+    UPROPERTY(EditAnywhere, Category = "Item Spawner")
+    float MinTime = 5.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Item Spawner")
+    float MaxTime = 10.0f;
+
+    /** 아이템 스폰 포인트 찾기 */
+    void FindSpawnPoints();
+
+    /** 아이템을 스폰 */
+    void CreateItem();
+
+    /** 특정 위치에서 아이템을 스폰 */
+    void SpawnItemAtLocation(int32 Index);
+
+    /** 특정 위치를 비활성화 */
+    void FreeSpawnPoint(int32 Index);
 };

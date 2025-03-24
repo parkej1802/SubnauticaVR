@@ -57,3 +57,9 @@ void AItemActor::InitializeItem(FItemData* ItemData)
         // 예: 모델 설정, 특성 등
     }
 }
+
+void AItemActor::SetSpawnIndex(int Index)
+{
+    SpawnIndex = Index;
+}
+
