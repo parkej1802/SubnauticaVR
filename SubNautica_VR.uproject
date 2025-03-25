@@ -41,6 +41,10 @@
 				"Linux",
 				"Android"
 			]
+		},
+		{
+			"Name": "PCG",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
