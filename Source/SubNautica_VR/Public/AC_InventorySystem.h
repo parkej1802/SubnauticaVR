@@ -21,8 +21,26 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+	UPROPERTY(EditAnywhere)
+	class APlayerCharacter* PlayerCharacter;
+
+	void DetectPlayer();
+	void TryAddItem(AActor* Actor);
+	
+	// FInventoryStruct ItemData;
+
+	void IsItemAlreadyInInventory();
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-		
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Inventory)
+	// TArray<FInventoryStruct> ItemsInInventory;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Inventory)
+	//TSubclassOf<UUserWidget> InventoryWidget;
+
+	//class UInventoryUI* InventoryUI;
+
+	void PickUpItem();
 };
