@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Classes/NiagaraSystem.h"
+#include "Sound/SoundCue.h"
 #include "AC_PlayerAction.generated.h"
 
 
@@ -69,4 +71,8 @@ public:
 	bool bIsCatch = false;
 
 	TMap<AActor*, float> HitActors;
+
+	//============================================================
+
+
 };

@@ -8,6 +8,13 @@
 #include "AC_PlayerAction.h"
 #include "PlayerStatUI.h"
 #include "GameFramework/CharacterMovementComponent.h" 
+#include "MotionControllerComponent.h"
+#include "../../../../Plugins/Runtime/XRBase/Source/XRBase/Public/HeadMountedDisplayFunctionLibrary.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputMappingContext.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputAction.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -15,9 +22,21 @@ APlayerCharacter::APlayerCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// 1. 카메라 붙이기
 	VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
 	VRCamera->SetupAttachment(RootComponent);
 
+	// 2. 손 붙이기
+	LeftHand = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftHand"));
+	LeftHand->SetupAttachment(RootComponent);
+	LeftHand->SetTrackingMotionSource(TEXT("Left"));
+
+	RightHand = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightHand"));
+	RightHand->SetupAttachment(RootComponent);
+	RightHand->SetTrackingMotionSource(TEXT("Right"));
+
+
+	//-----------------------------------------------------------
 	BuildComp = CreateDefaultSubobject<UAC_BuildingComponent>(TEXT("BuildingComp"));
 	PlayerActionComp = CreateDefaultSubobject<UAC_PlayerAction>(TEXT("PlayerActionComp"));
 }
@@ -26,6 +45,29 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// HMD가 연결되어 있으면, HMD의 Tracking 위치를 조절해보자
+	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled()) {
+		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin(EHMDTrackingOrigin::View);
+		UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition(0);
+		//UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition(90);
+	}
+
+	// 컨트롤러 연결
+	if (PlayerActionComp)
+	{
+		UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent);
+		if (EnhancedInput)
+		{
+			PlayerActionComp->SetupInputBinding(EnhancedInput);
+		}
+	}
+
+	// 수영 상태일 때 5초마다 효과를 소환하는 타이머 시작
+	if (bIsSwimming)
+	{
+		GetWorld()->GetTimerManager().SetTimer(SwimEffectTimerHandle, this, &APlayerCharacter::SpawnSwimmingEffect, 5.f, true);
+	}
 	
 }
 
@@ -33,18 +75,58 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
-
-	ShowPlayerUI();
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
+	//ShowPlayerUI();
 }
 
-// Called to bind functionality to input
+//-----------------------------------------------------------------------
+// Input 연결
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+
 }
 
+
+//-----------------------------------------------------------------------
+// 물방울 효과 소환
+// 5초마다 파티클과 사운드를 소환하는 함수
+void APlayerCharacter::SpawnSwimmingEffect()
+{
+	if (bIsSwimming)
+	{
+		// 파티클 효과 소환
+		if (SwimEffect)
+		{
+			// 플레이어 위치에서 파티클 소환
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SwimEffect, GetActorLocation());
+		}
+
+		// 사운드 효과 소환
+		if (SwimSound)
+		{
+			// 플레이어 위치에서 사운드 재생
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), SwimSound, GetActorLocation());
+		}
+
+		// 3초 후에 효과를 제거하는 타이머 설정
+		GetWorld()->GetTimerManager().SetTimer(EffectDurationTimerHandle, this, &APlayerCharacter::DestroySwimmingEffect, 3.f, false);
+	}
+}
+
+// 3초 후에 효과를 제거하는 함수
+void APlayerCharacter::DestroySwimmingEffect()
+{
+	// 파티클과 사운드는 소멸 시킬 필요가 없으므로, 이 함수에서는 주로 타이머나 추가적인 상태 처리만 합니다.
+	// 예시: 파티클을 자동으로 제거하거나, 상태를 업데이트 하는 코드 추가
+	UE_LOG(LogTemp, Warning, TEXT("Swimming Effect Destroyed"));
+}
+
+
+//-----------------------------------------------------------------------
 int APlayerCharacter::CalculateDepth(float DeltaSecond)
 {
 	float calculateZ = 0.0f - GetActorLocation().Z;

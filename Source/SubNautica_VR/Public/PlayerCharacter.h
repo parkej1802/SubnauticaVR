@@ -28,22 +28,80 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	UPROPERTY(VisibleAnywhere)
+	// 카메라
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	class UCameraComponent* VRCamera;
 
+	//--------------------------------------------------------
+	// 모션 컨트롤러 연결
+	UPROPERTY(VisibleAnywhere, Category = "MotionController")
+	class UMotionControllerComponent* LeftHand;
+
+	UPROPERTY(VisibleAnywhere, Category = "MotionController")
+	class UMotionControllerComponent* RightHand;
+
+	//---------------------------------------------------------	
+	// 현재 속도 (초기값: 정지 상태)
+	UPROPERTY(EditAnywhere, Category = "Player Settings")
+	FVector Velocity = FVector::ZeroVector;
+
+	// 수영 속도 (초기값: 300.0f)
+	UPROPERTY(EditAnywhere, Category = "Player Settings")
+	float SwimSpeed = 300.0f;
+
+	// 수영 상태 판별
+	UPROPERTY(EditAnywhere)
 	bool bIsSwimming = true;
 
+	//---------------------------------------------------------
+	// 수영 Visual Effects
+	// 5초 간격으로 효과를 소환하는 함수
+	void SpawnSwimmingEffect();
+
+	// 3초 후에 효과를 제거하는 함수
+	void DestroySwimmingEffect();
+
+	private:
+    // Cascade
+	UPROPERTY(EditAnywhere, Category = "Swimming Effects")
+	UParticleSystem* SwimEffect;  // Cascade 파티클 시스템
+
+    // 사운드 이펙트 배열
+    UPROPERTY(EditAnywhere, Category = "Sounds")
+	USoundBase* SwimSound;
+    //TArray<USoundCue*> BubbleSounds; // 물방울 소리 효과 (USoundCue)
+
+
+	// 타이머 핸들
+	FTimerHandle SwimEffectTimerHandle;
+	FTimerHandle EffectDurationTimerHandle;
+
+
+	//---------------------------------------------------------
+
+	// 수심
 	int32 WaterDepth = 0.0f;
 
+	// 수심 계산
 	int CalculateDepth(float DeltaSecond);
 
+	//--------------------------------------------------------
+public:
+	// 산소 최대치
 	int32 MaxOxygen = 100;
 
+	// 현재 산소
 	int32 CurrentOxygen = MaxOxygen;
 
 	float currentOxygenTime = 0.f;
+
+	//산소 소모 속도(시간 비례)
+	UPROPERTY(EditAnywhere)
 	float OxygenTime = 0.25f;
 
+
+	//--------------------------------------------------------
+	// 임시 UI
 	void ShowPlayerUI();
 
 	UPROPERTY(EditAnywhere, Category = MainWidget)
@@ -51,12 +109,14 @@ public:
 
 	class UPlayerStatUI* PlayerMainUI;
 
+
+//----------------------------------------------------------------
 // PlayerAction
 public:
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAction)
 	class UAC_PlayerAction* PlayerActionComp;
 
-	
+
 // BuildingSystem
 public:
 	UPROPERTY(EditDefaultsOnly, Category = BuildingSystem)

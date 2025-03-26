@@ -11,6 +11,9 @@
 #include "InputActionValue.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 // Sets default values for this component's properties
 UAC_PlayerAction::UAC_PlayerAction()
@@ -82,6 +85,7 @@ void UAC_PlayerAction::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (bIsCatch) {
 		PlayerCatchTrace();
 	}
+
 }
 
 void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
@@ -101,6 +105,8 @@ void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
 
 	if (InputSystem) {
 		InputSystem->BindAction(IA_PlayerMove, ETriggerEvent::Triggered, this, &UAC_PlayerAction::PlayerMove);
+
+
 		InputSystem->BindAction(IA_PlayerTurn, ETriggerEvent::Triggered, this, &UAC_PlayerAction::Turn);
 		InputSystem->BindAction(IA_PlayerJump, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerJump);
 		InputSystem->BindAction(IA_Swim, ETriggerEvent::Triggered, this, &UAC_PlayerAction::PlayerSwimming);
@@ -109,16 +115,51 @@ void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
 	}
 }
 
+
+
+
 void UAC_PlayerAction::PlayerMove(const struct FInputActionValue& InputValue)
 {
-	if (PlayerCharacter->bIsSwimming) return;
+	FVector2D Scale = InputValue.Get<FVector2D>();
 
-	FVector2d Scale = InputValue.Get<FVector2d>();
-	FVector Direction = PlayerCharacter->VRCamera->GetForwardVector() * Scale.X + PlayerCharacter->VRCamera->GetRightVector() * Scale.Y;
 
-	PlayerCharacter->AddMovementInput(Direction);
+	//1. 물속에서 이동
+	if (PlayerCharacter->bIsSwimming)
+	{
+		PlayerCharacter->GetCharacterMovement()->MaxFlySpeed = PlayerCharacter->SwimSpeed;
+
+		// 물속에서 이동 감속 반영
+		FVector Forward = PlayerCharacter->VRCamera->GetForwardVector();
+		FVector Right = PlayerCharacter->VRCamera->GetRightVector();
+		FVector Up = FVector::UpVector; // 수직 이동 (물속에서 뜨거나 가라앉는 경우)
+
+		// 속도를 점진적으로 줄이기 위한 감쇠 적용
+		float DragFactor = 0.8f; // 항력 계수 (조절 가능)
+		PlayerCharacter->Velocity *= DragFactor;
+
+		// 플레이어가 물속에서 입력에 따라 움직이도록 적용
+		FVector SwimDirection = (Forward * Scale.X + Right * Scale.Y).GetSafeNormal();
+		PlayerCharacter->Velocity += SwimDirection * PlayerCharacter->SwimSpeed * GetWorld()->GetDeltaSeconds();
+
+		// 최종 이동 적용
+		PlayerCharacter->AddMovementInput(PlayerCharacter->Velocity.GetSafeNormal());
+	}
+	//2. 기존 지상 이동
+	else
+	{
+		// 기존 지상 이동
+		PlayerCharacter->AddMovementInput(PlayerCharacter->VRCamera->GetForwardVector(), Scale.X);
+		PlayerCharacter->AddMovementInput(PlayerCharacter->VRCamera->GetRightVector(), Scale.Y);
+	}
 }
 
+//기존 코드
+//FVector Direction = PlayerCharacter->VRCamera->GetForwardVector() * Scale.X + PlayerCharacter->VRCamera->GetRightVector() * Scale.Y;
+//PlayerCharacter->AddMovementInput(Direction);
+
+
+
+//===============================================================================================
 void UAC_PlayerAction::Turn(const struct FInputActionValue& Values)
 {
 	FVector2d Scale = Values.Get<FVector2d>();
@@ -136,28 +177,29 @@ void UAC_PlayerAction::PlayerJump(const struct FInputActionValue& Values)
 
 void UAC_PlayerAction::InWater()
 {
-
+	/*
 	UCharacterMovementComponent* CharacterMovement = PlayerCharacter->GetCharacterMovement();
 	if (CharacterMovement)
 	{
 		CharacterMovement->SetMovementMode(MOVE_Swimming);
 	}
-	
+	*/
 }	
 
 void UAC_PlayerAction::OutWater()
 {
-
+	/*
 	UCharacterMovementComponent* CharacterMovement = PlayerCharacter->GetCharacterMovement();
 	if (CharacterMovement)
 	{
 		CharacterMovement->SetMovementMode(MOVE_Walking);
 	}
-	
+	*/
 }
 
 void UAC_PlayerAction::PlayerSwimming(const struct FInputActionValue& InputValue)
 {
+	/*
 	if (!PlayerCharacter->bIsSwimming) return;
 
 	FVector2d Scale = InputValue.Get<FVector2d>();
@@ -165,8 +207,10 @@ void UAC_PlayerAction::PlayerSwimming(const struct FInputActionValue& InputValue
 	FVector Direction = PlayerCharacter->VRCamera->GetForwardVector() * Scale.X + PlayerCharacter->VRCamera->GetRightVector() * Scale.Y;
 
 	PlayerCharacter->AddMovementInput(Direction);
+	*/
 }
 
+//---------------------------------------------------------------------------------------------
 void UAC_PlayerAction::PlayerCatchTrace()
 {
 	FVector StartLocation = PlayerCharacter->VRCamera->GetComponentLocation();
