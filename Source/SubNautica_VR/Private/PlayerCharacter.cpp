@@ -63,11 +63,7 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 
-	// 수영 상태일 때 5초마다 효과를 소환하는 타이머 시작
-	if (bIsSwimming)
-	{
-		GetWorld()->GetTimerManager().SetTimer(SwimEffectTimerHandle, this, &APlayerCharacter::SpawnSwimmingEffect, 5.f, true);
-	}
+
 	
 }
 
@@ -92,38 +88,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 
 //-----------------------------------------------------------------------
-// 물방울 효과 소환
-// 5초마다 파티클과 사운드를 소환하는 함수
-void APlayerCharacter::SpawnSwimmingEffect()
-{
-	if (bIsSwimming)
-	{
-		// 파티클 효과 소환
-		if (SwimEffect)
-		{
-			// 플레이어 위치에서 파티클 소환
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SwimEffect, GetActorLocation());
-		}
-
-		// 사운드 효과 소환
-		if (SwimSound)
-		{
-			// 플레이어 위치에서 사운드 재생
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), SwimSound, GetActorLocation());
-		}
-
-		// 3초 후에 효과를 제거하는 타이머 설정
-		GetWorld()->GetTimerManager().SetTimer(EffectDurationTimerHandle, this, &APlayerCharacter::DestroySwimmingEffect, 3.f, false);
-	}
-}
-
-// 3초 후에 효과를 제거하는 함수
-void APlayerCharacter::DestroySwimmingEffect()
-{
-	// 파티클과 사운드는 소멸 시킬 필요가 없으므로, 이 함수에서는 주로 타이머나 추가적인 상태 처리만 합니다.
-	// 예시: 파티클을 자동으로 제거하거나, 상태를 업데이트 하는 코드 추가
-	UE_LOG(LogTemp, Warning, TEXT("Swimming Effect Destroyed"));
-}
 
 
 //-----------------------------------------------------------------------

@@ -52,6 +52,12 @@ UAC_PlayerAction::UAC_PlayerAction()
 	if (TempIA_Catch.Succeeded()) {
 		IA_Catch = TempIA_Catch.Object;
 	}
+
+	//-------------------------------------------------------------
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_SnapTurn(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SnapTurn.IA_SnapTurn'"));
+	if (TempIA_SnapTurn.Succeeded()) {
+		IA_SnapTurn = TempIA_SnapTurn.Object;
+	}
 }
 
 // Called when the game starts
@@ -112,10 +118,11 @@ void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
 		InputSystem->BindAction(IA_Swim, ETriggerEvent::Triggered, this, &UAC_PlayerAction::PlayerSwimming);
 		InputSystem->BindAction(IA_Catch, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerCatchStart);
 		InputSystem->BindAction(IA_Catch, ETriggerEvent::Completed, this, &UAC_PlayerAction::PlayerCatchEnd);
+
+
+		InputSystem->BindAction(IA_SnapTurn, ETriggerEvent::Triggered, this, &UAC_PlayerAction::SnapTurn);
 	}
 }
-
-
 
 
 void UAC_PlayerAction::PlayerMove(const struct FInputActionValue& InputValue)
@@ -286,3 +293,17 @@ void UAC_PlayerAction::PlayerCatchEnd(const struct FInputActionValue& InputValue
 {
 	bIsCatch = false;
 }
+
+//---------------------------------------------------------------------------------------------
+void UAC_PlayerAction::SnapTurn(const struct FInputActionValue& InputValue)
+{
+	FVector2D Scale = InputValue.Get<FVector2D>();
+
+	// X축 입력값 → 좌우 회전 (Yaw)
+	PlayerCharacter->AddControllerYawInput(Scale.X * RotationSpeed);
+
+	// Y축 입력값 → 위아래 회전 (Pitch)
+	PlayerCharacter->AddControllerPitchInput(Scale.Y * RotationSpeed);
+}
+
+

@@ -48,6 +48,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_PlayerJump;
 
+	// 스냅턴 기능 추가
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_SnapTurn;
+
+	//--------------------------------------------------------------
 	void PlayerJump(const struct FInputActionValue& Values);
 
 	void InWater();
@@ -73,6 +78,12 @@ public:
 	TMap<AActor*, float> HitActors;
 
 	//============================================================
+	// 스냅 턴 관련 구현
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerTurn")
+	float RotationSpeed = 1.0f;
 
+	void SnapTurn(const struct FInputActionValue& InputValue);
+
+	bool bCanSnapTurn = true;
 
 };

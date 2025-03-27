@@ -29,7 +29,7 @@ public:
 
 public:
 	// 카메라
-	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	class UCameraComponent* VRCamera;
 
 	//--------------------------------------------------------
@@ -54,27 +54,7 @@ public:
 	bool bIsSwimming = true;
 
 	//---------------------------------------------------------
-	// 수영 Visual Effects
-	// 5초 간격으로 효과를 소환하는 함수
-	void SpawnSwimmingEffect();
 
-	// 3초 후에 효과를 제거하는 함수
-	void DestroySwimmingEffect();
-
-	private:
-    // Cascade
-	UPROPERTY(EditAnywhere, Category = "Swimming Effects")
-	UParticleSystem* SwimEffect;  // Cascade 파티클 시스템
-
-    // 사운드 이펙트 배열
-    UPROPERTY(EditAnywhere, Category = "Sounds")
-	USoundBase* SwimSound;
-    //TArray<USoundCue*> BubbleSounds; // 물방울 소리 효과 (USoundCue)
-
-
-	// 타이머 핸들
-	FTimerHandle SwimEffectTimerHandle;
-	FTimerHandle EffectDurationTimerHandle;
 
 
 	//---------------------------------------------------------
