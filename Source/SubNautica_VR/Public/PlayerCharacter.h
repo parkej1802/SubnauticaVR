@@ -39,8 +39,14 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "MotionController")
 	class UMotionControllerComponent* LeftHand;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hand")
+	class USkeletalMeshComponent* LeftHandMesh;
+
 	UPROPERTY(VisibleAnywhere, Category = "MotionController")
 	class UMotionControllerComponent* RightHand;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hand")
+	class USkeletalMeshComponent* RightHandMesh;
 
 	//---------------------------------------------------------	
 	// 현재 속도 (초기값: 정지 상태)
@@ -54,11 +60,6 @@ public:
 	// 수영 상태 판별
 	UPROPERTY(EditAnywhere)
 	bool bIsSwimming = true;
-
-	//---------------------------------------------------------
-
-
-
 	//---------------------------------------------------------
 
 	// 수심
@@ -103,5 +104,45 @@ public:
 public:
 	UPROPERTY(EditDefaultsOnly, Category = BuildingSystem)
 	class UAC_BuildingComponent* BuildComp;
+
+//----------------------------------------------------------------
+// 플레이어 HP (에너미 상호작용 관련)
+	int32 MaxHP = 3;
+
+	// 체력
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	int32 hp = MaxHP;
+
+	int GetPlayerHP();
+	void SetPlayerHP(int amount);
+
+//----------------------------------------------------------------
+// 플레이어 공격
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UStaticMeshComponent* Scanner;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UBoxComponent* ScannerCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UStaticMeshComponent* CrowBar;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UBoxComponent* CrowBarCollision;
+
+	bool bAttackCollsion = false;
+
+	void AttackCollisionCheck();
+
+
+
+	void Attack();
+
+//----------------------------------------------------------------
+
+
+
+
 };
+
 

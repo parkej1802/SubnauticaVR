@@ -58,6 +58,12 @@ UAC_PlayerAction::UAC_PlayerAction()
 	if (TempIA_SnapTurn.Succeeded()) {
 		IA_SnapTurn = TempIA_SnapTurn.Object;
 	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_ShowTool(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_UseTool.IA_UseTool'"));
+	if (TempIA_ShowTool.Succeeded()) {
+		IA_ShowTool = TempIA_ShowTool.Object;
+	}
+	//-------------------------------------------------------------
 }
 
 // Called when the game starts
@@ -121,6 +127,10 @@ void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
 
 
 		InputSystem->BindAction(IA_SnapTurn, ETriggerEvent::Triggered, this, &UAC_PlayerAction::SnapTurn);
+
+		InputSystem->BindAction(IA_ShowTool, ETriggerEvent::Started, this, &UAC_PlayerAction::ToolUse);
+		InputSystem->BindAction(IA_ShowTool, ETriggerEvent::Completed, this, &UAC_PlayerAction::HideTool);
+
 	}
 }
 
@@ -295,6 +305,7 @@ void UAC_PlayerAction::PlayerCatchEnd(const struct FInputActionValue& InputValue
 }
 
 //---------------------------------------------------------------------------------------------
+// 컨트롤러를 활용한 회전
 void UAC_PlayerAction::SnapTurn(const struct FInputActionValue& InputValue)
 {
 	FVector2D Scale = InputValue.Get<FVector2D>();
@@ -305,5 +316,21 @@ void UAC_PlayerAction::SnapTurn(const struct FInputActionValue& InputValue)
 	// Y축 입력값 → 위아래 회전 (Pitch)
 	PlayerCharacter->AddControllerPitchInput(Scale.Y * RotationSpeed);
 }
+
+// 도구 사용
+void UAC_PlayerAction::ToolUse(const struct FInputActionValue& InputValue)
+{
+	// 도구 보이게 하기
+	PlayerCharacter->bAttackCollsion = true;
+	PlayerCharacter->AttackCollisionCheck();
+}
+
+void UAC_PlayerAction::HideTool(const struct FInputActionValue& InputValue)
+{
+	PlayerCharacter->bAttackCollsion = false;
+	PlayerCharacter->AttackCollisionCheck();
+}
+
+//---------------------------------------------------------------------------------------------
 
 

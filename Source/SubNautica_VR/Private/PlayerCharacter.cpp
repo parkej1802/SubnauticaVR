@@ -35,9 +35,62 @@ APlayerCharacter::APlayerCharacter()
 	LeftHand->SetupAttachment(RootComponent);
 	LeftHand->SetTrackingMotionSource(TEXT("Left"));
 
+	LeftHandMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftHandMesh"));
+	LeftHandMesh->SetupAttachment(LeftHand);
+
+	// 스켈레탈 메쉬 로드
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempLeftHandMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left'"));
+
+	if (TempLeftHandMesh.Succeeded()) {
+		LeftHandMesh->SetSkeletalMesh(TempLeftHandMesh.Object);
+	}
+	
+	//---------------------------------------------------------------------------------------
 	RightHand = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightHand"));
 	RightHand->SetupAttachment(RootComponent);
 	RightHand->SetTrackingMotionSource(TEXT("Right"));
+
+	RightHandMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightHandMesh"));
+	RightHandMesh->SetupAttachment(RightHand);
+
+	// 스켈레탈 메쉬 로드
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempRightHandMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_right.SKM_MannyXR_right'"));
+
+	if (TempRightHandMesh.Succeeded()) {
+		RightHandMesh->SetSkeletalMesh(TempRightHandMesh.Object);
+	}
+
+	//-----------------------------------------------------------
+	//3. 도구 추가
+	Scanner = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scanner"));
+	Scanner->SetupAttachment(RightHandMesh, TEXT("palm_r"));
+	Scanner->SetRelativeScale3D(FVector(0.05));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> Temp_ScannerMesh(TEXT("/Script/Engine.StaticMesh'/Game/AHS/Assets/Models/Tools/sci-fi-scanner__2_/source/scannerf.scannerf'"));
+
+	if (Temp_ScannerMesh.Succeeded()) {
+		Scanner->SetStaticMesh(Temp_ScannerMesh.Object);
+	}
+
+	//ScannerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("ScannerCollision"));
+	//ScannerCollision->SetupAttachment(Scanner);
+	//ScannerCollision->SetCollisionProfileName("");
+
+	//-----------------------------------------------------------------------------------------
+	// 무기
+	CrowBar = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CrowBar"));
+	CrowBar->SetupAttachment(RightHandMesh, TEXT("palm_r"));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> Temp_CrowbarMesh(TEXT("/Script/Engine.StaticMesh'/Game/AHS/Assets/Models/Tools/crowbar/source/crowbar1.crowbar1'"));
+
+	if (Temp_CrowbarMesh.Succeeded()) {
+		CrowBar->SetStaticMesh(Temp_CrowbarMesh.Object);
+	}
+
+	CrowBarCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CrowBarCollision"));
+	CrowBarCollision->SetupAttachment(CrowBar);
+	CrowBarCollision->SetCollisionProfileName("PlayerAttack");
+	CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 
 	//-----------------------------------------------------------
@@ -66,7 +119,11 @@ void APlayerCharacter::BeginPlay()
 			PlayerActionComp->SetupInputBinding(EnhancedInput);
 		}
 	}
-
+	
+	//-------------------------------------------------------------------
+	// 1. 도구 설정
+	Scanner->SetVisibility(false);
+	CrowBar->SetVisibility(false);
 
 	
 }
@@ -89,9 +146,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 
 }
-
-
-//-----------------------------------------------------------------------
 
 
 //-----------------------------------------------------------------------
@@ -126,4 +180,39 @@ void APlayerCharacter::ShowPlayerUI()
 		PlayerMainUI->AddToViewport();
 	}
 }
+
+//-----------------------------------------------------------------------
+// 플레이어 체력 구현
+int APlayerCharacter::GetPlayerHP()
+{
+	return hp;
+}
+
+void APlayerCharacter::SetPlayerHP(int amount)
+{
+	hp += amount;
+}
+
+//-----------------------------------------------------------------------
+// 플레이어 공격 구현
+void APlayerCharacter::AttackCollisionCheck()
+{
+	if (bAttackCollsion == false) {
+		CrowBar->SetVisibility(true);
+		CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	else {
+		CrowBar->SetVisibility(false);
+		CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+}
+
+
+
+void APlayerCharacter::Attack()
+{
+
+}
+
+//-----------------------------------------------------------------------
 

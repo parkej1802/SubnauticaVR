@@ -86,4 +86,12 @@ public:
 
 	bool bCanSnapTurn = true;
 
+	//------------------------------------------------------------
+	// 도구 사용 추가
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_ShowTool;
+
+	void ToolUse(const struct FInputActionValue& InputValue);
+	void HideTool(const struct FInputActionValue& InputValue);
+
 };
