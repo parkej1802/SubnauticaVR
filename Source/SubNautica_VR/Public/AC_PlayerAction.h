@@ -87,11 +87,30 @@ public:
 	bool bCanSnapTurn = true;
 
 	//------------------------------------------------------------
-	// 도구 사용 추가
+	// 도구 사용 추가 ( 무기 사용 )
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_ShowTool;
 
 	void ToolUse(const struct FInputActionValue& InputValue);
 	void HideTool(const struct FInputActionValue& InputValue);
+
+	//------------------------------------------------------------
+	// 스캐너 액션
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_ShowScanner;
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Scanner;
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_HideScanner;
+
+	bool bShowScanner = false;
+
+	void ShowScanner(const struct FInputActionValue& InputValue);
+	void HideScanner(const struct FInputActionValue& InputValue);
+	void UseScanner(const struct FInputActionValue& InputValue);
+
+	//------------------------------------------------------------
 
 };

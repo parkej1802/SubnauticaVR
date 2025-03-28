@@ -102,11 +102,14 @@ public:
 // 피격 구현
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	int32 MaxHP = 1;
+	int32 MaxHP = 3;
 
 	// 체력
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	int32 hp = MaxHP;
+
+	// 죽음 상태 구현
+	void DieState();
 
 //-----------------------------------------------------------------------
 

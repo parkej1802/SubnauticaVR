@@ -122,7 +122,7 @@ public:
 	class UStaticMeshComponent* Scanner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
-	class UBoxComponent* ScannerCollision;
+	class UStaticMeshComponent* TempScanner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
 	class UStaticMeshComponent* CrowBar;
@@ -134,11 +134,8 @@ public:
 
 	void AttackCollisionCheck();
 
-
-
-	void Attack();
-
 //----------------------------------------------------------------
+// 플레이어 스캔 액션
 
 
 

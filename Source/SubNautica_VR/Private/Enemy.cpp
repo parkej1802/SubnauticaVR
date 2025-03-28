@@ -62,15 +62,18 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 실행창에 상태 메세지 출력하기
-	FString logMsg = UEnum::GetValueAsString(mState);
-	GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, logMsg);
+	// HP가 0보다 작다면 죽는다.
+	if (hp <= 0) {
+		mState = EEnemyState::Die;
+	}
 
+
+	// 실행창에 상태 메세지 출력하기
 	switch (mState) {
 		case EEnemyState::Idle: {	IdleState();	} break;
 		case EEnemyState::Move: {  MoveState(DeltaTime); } break;
 		case EEnemyState::Attack: { AttackState(); } break;
-
+		case EEnemyState::Die: { DieState(); } break;
 	}
 }
 
@@ -83,6 +86,7 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 //-----------------------------------------------------------------------------------------------
 // 일반 상태
 void AEnemy::IdleState() {
+
 	if (bChasePlayer == true) {
 		mState = EEnemyState::Move;
 	}
@@ -185,6 +189,12 @@ void AEnemy::EndAttack()
 	// 상태를 Idle로 변경
 	mState = EEnemyState::Idle;
 }
+
+void AEnemy::DieState()
+{
+	this->Destroy();
+}
+
 //--------------------------------------------------------------------------------------------
 
 

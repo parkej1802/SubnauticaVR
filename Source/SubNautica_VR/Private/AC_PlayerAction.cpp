@@ -63,6 +63,22 @@ UAC_PlayerAction::UAC_PlayerAction()
 	if (TempIA_ShowTool.Succeeded()) {
 		IA_ShowTool = TempIA_ShowTool.Object;
 	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_ShowScanner(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_ShowScanner.IA_ShowScanner'"));
+	if (TempIA_ShowScanner.Succeeded()) {
+		IA_ShowScanner = TempIA_ShowScanner.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_Scanning(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Scanning.IA_Scanning'"));
+	if (TempIA_Scanning.Succeeded()) {
+		IA_Scanner = TempIA_Scanning.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_HideScanning(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_HideScanner.IA_HideScanner'"));
+	if (TempIA_HideScanning.Succeeded()) {
+		IA_HideScanner = TempIA_HideScanning.Object;
+	}
+
 	//-------------------------------------------------------------
 }
 
@@ -122,14 +138,23 @@ void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
 		InputSystem->BindAction(IA_PlayerTurn, ETriggerEvent::Triggered, this, &UAC_PlayerAction::Turn);
 		InputSystem->BindAction(IA_PlayerJump, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerJump);
 		InputSystem->BindAction(IA_Swim, ETriggerEvent::Triggered, this, &UAC_PlayerAction::PlayerSwimming);
+
 		InputSystem->BindAction(IA_Catch, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerCatchStart);
 		InputSystem->BindAction(IA_Catch, ETriggerEvent::Completed, this, &UAC_PlayerAction::PlayerCatchEnd);
 
-
+		// 회전(컨트롤러 이용)
 		InputSystem->BindAction(IA_SnapTurn, ETriggerEvent::Triggered, this, &UAC_PlayerAction::SnapTurn);
 
+		// 무기 사용
 		InputSystem->BindAction(IA_ShowTool, ETriggerEvent::Started, this, &UAC_PlayerAction::ToolUse);
 		InputSystem->BindAction(IA_ShowTool, ETriggerEvent::Completed, this, &UAC_PlayerAction::HideTool);
+
+		// 스캐너 사용
+		InputSystem->BindAction(IA_ShowScanner, ETriggerEvent::Started, this, &UAC_PlayerAction::ShowScanner);
+		InputSystem->BindAction(IA_HideScanner, ETriggerEvent::Started, this, &UAC_PlayerAction::HideScanner);
+
+		InputSystem->BindAction(IA_Scanner, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerCatchStart);
+		InputSystem->BindAction(IA_Scanner, ETriggerEvent::Completed, this, &UAC_PlayerAction::PlayerCatchEnd);
 
 	}
 }
@@ -230,9 +255,11 @@ void UAC_PlayerAction::PlayerSwimming(const struct FInputActionValue& InputValue
 //---------------------------------------------------------------------------------------------
 void UAC_PlayerAction::PlayerCatchTrace()
 {
-	FVector StartLocation = PlayerCharacter->VRCamera->GetComponentLocation();
-	FVector ForwardVector = PlayerCharacter->VRCamera->GetForwardVector();
+	//FVector StartLocation = PlayerCharacter->VRCamera->GetComponentLocation();
+	//FVector ForwardVector = PlayerCharacter->VRCamera->GetForwardVector();
 
+	FVector StartLocation = PlayerCharacter->TempScanner->GetComponentLocation();
+	FVector ForwardVector = PlayerCharacter->TempScanner->GetForwardVector();
 
 	float TraceDistance = 150.0f;
 	float SphereRadius = 40.0f;
@@ -295,8 +322,10 @@ void UAC_PlayerAction::PlayerCatchTrace()
 }
 
 void UAC_PlayerAction::PlayerCatchStart(const struct FInputActionValue& InputValue)
-{	
-	bIsCatch = true;
+{
+	if (bShowScanner == true) {
+		bIsCatch = true;
+	}
 }
 
 void UAC_PlayerAction::PlayerCatchEnd(const struct FInputActionValue& InputValue)
@@ -320,6 +349,12 @@ void UAC_PlayerAction::SnapTurn(const struct FInputActionValue& InputValue)
 // 도구 사용
 void UAC_PlayerAction::ToolUse(const struct FInputActionValue& InputValue)
 {
+	// 스캐너 숨기기
+	if (bShowScanner == true) {
+		PlayerCharacter->Scanner->SetVisibility(false);
+		bShowScanner = false;
+	}
+
 	// 도구 보이게 하기
 	PlayerCharacter->bAttackCollsion = true;
 	PlayerCharacter->AttackCollisionCheck();
@@ -329,6 +364,32 @@ void UAC_PlayerAction::HideTool(const struct FInputActionValue& InputValue)
 {
 	PlayerCharacter->bAttackCollsion = false;
 	PlayerCharacter->AttackCollisionCheck();
+}
+
+void UAC_PlayerAction::ShowScanner(const struct FInputActionValue& InputValue)
+{
+	if (bShowScanner == false) {
+		PlayerCharacter->Scanner->SetVisibility(true);
+		bShowScanner = true;
+	}
+}
+
+void UAC_PlayerAction::HideScanner(const struct FInputActionValue& InputValue)
+{
+	if (bShowScanner == true) {
+		PlayerCharacter->Scanner->SetVisibility(false);
+		bShowScanner = false;
+	}
+}
+
+void UAC_PlayerAction::UseScanner(const struct FInputActionValue& InputValue)
+{
+	if (bShowScanner == true) {
+		FString logMsg = TEXT("ScannerUsed!");
+		GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, logMsg);
+
+		PlayerCatchTrace();
+	}
 }
 
 //---------------------------------------------------------------------------------------------

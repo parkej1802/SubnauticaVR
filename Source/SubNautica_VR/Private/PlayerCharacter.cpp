@@ -72,8 +72,8 @@ APlayerCharacter::APlayerCharacter()
 		Scanner->SetStaticMesh(Temp_ScannerMesh.Object);
 	}
 
-	//ScannerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("ScannerCollision"));
-	//ScannerCollision->SetupAttachment(Scanner);
+	TempScanner = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TempScanner"));
+	TempScanner->SetupAttachment(Scanner);
 	//ScannerCollision->SetCollisionProfileName("");
 
 	//-----------------------------------------------------------------------------------------
@@ -198,21 +198,16 @@ void APlayerCharacter::SetPlayerHP(int amount)
 void APlayerCharacter::AttackCollisionCheck()
 {
 	if (bAttackCollsion == false) {
-		CrowBar->SetVisibility(true);
-		CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	}
-	else {
 		CrowBar->SetVisibility(false);
 		CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	else {
+		CrowBar->SetVisibility(true);
+		CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
 }
 
 
-
-void APlayerCharacter::Attack()
-{
-
-}
 
 //-----------------------------------------------------------------------
 
