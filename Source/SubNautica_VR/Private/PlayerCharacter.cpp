@@ -15,12 +15,16 @@
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputMappingContext.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputAction.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// 0. Collision 설정
+	GetCapsuleComponent()->SetCollisionProfileName("Player");
 
 	// 1. 카메라 붙이기
 	VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
