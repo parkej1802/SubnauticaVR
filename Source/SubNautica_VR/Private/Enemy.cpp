@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "PlayerCharacter.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // 기본 생성자
 AEnemy::AEnemy()
@@ -55,7 +56,43 @@ void AEnemy::BeginPlay()
 	// 범위 감지 이벤트 바인딩
 	CheckPlayerRange->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnPlayerEnterRange);
 	CheckPlayerRange->OnComponentEndOverlap.AddDynamic(this, &AEnemy::OnPlayerExitRange);
+
+	//---------------------------------------------------------------------------------------------
+	// Spline 찾기
+	// Spline 찾기
+	TArray<AActor*> FoundSplines;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASplinePath::StaticClass(), FoundSplines);
+	if (FoundSplines.Num() > 0)
+	{
+		PatrolPath = Cast<ASplinePath>(FoundSplines[0]); // 첫 번째 Spline 사용
+
+		if (PatrolPath)
+		{
+			USplineComponent* Spline = PatrolPath->SplineComponent;
+			if (Spline)
+			{
+				// 적을 Spline의 첫 번째 위치에 배치
+				FVector StartLocation = Spline->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
+				SetActorLocation(StartLocation);
+
+				// 방향도 첫 번째 구간을 향하도록 설정
+				FVector NextLocation = Spline->GetLocationAtSplinePoint(1, ESplineCoordinateSpace::World);
+				FVector ForwardDirection = (NextLocation - StartLocation).GetSafeNormal();
+				SetActorRotation(ForwardDirection.Rotation());
+
+				// Spline 시작 위치로 초기화
+				DistanceAlongSpline = 0.0f;
+			}
+		}
+	}
+
+
 }
+
+
+
+
+
 
 // 매 프레임 호출
 void AEnemy::Tick(float DeltaTime)
@@ -70,7 +107,7 @@ void AEnemy::Tick(float DeltaTime)
 
 	// 실행창에 상태 메세지 출력하기
 	switch (mState) {
-		case EEnemyState::Idle: {	IdleState();	} break;
+		case EEnemyState::Idle: {	IdleState(DeltaTime);	} break;
 		case EEnemyState::Move: {  MoveState(DeltaTime); } break;
 		case EEnemyState::Attack: { AttackState(); } break;
 		case EEnemyState::Die: { DieState(); } break;
@@ -85,18 +122,42 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 //-----------------------------------------------------------------------------------------------
 // 일반 상태
-void AEnemy::IdleState() {
-
-	if (bChasePlayer == true) {
+void AEnemy::IdleState(float DeltaTime)
+{
+	if (bChasePlayer) {
 		mState = EEnemyState::Move;
+		return;
 	}
-	else {
 
+	if (PatrolPath)
+	{
+		// Spline을 따라 순찰하는 상태
+		if (!PatrolPath) return;
+		USplineComponent* Spline = PatrolPath->SplineComponent;
+		if (!Spline) return;
+
+		// Spline을 따라 이동
+		DistanceAlongSpline += Speed * DeltaTime;
+		float SplineLength = Spline->GetSplineLength();
+
+		if (DistanceAlongSpline >= SplineLength)
+		{
+			DistanceAlongSpline = 0.0f; // 순환 이동
+		}
+
+		FVector NewLocation = Spline->GetLocationAtDistanceAlongSpline(DistanceAlongSpline, ESplineCoordinateSpace::World);
+		FRotator NewRotation = Spline->GetRotationAtDistanceAlongSpline(DistanceAlongSpline, ESplineCoordinateSpace::World);
+
+		SetActorLocation(NewLocation);
+		SetActorRotation(NewRotation);
 	}
 }
 
+
+
 //-----------------------------------------------------------------------------------------------
 // 이동
+/*
 void AEnemy::MoveState(float DeltaTime)
 {
 	if (!bChasePlayer || target == nullptr || bIsAttacking)
@@ -128,6 +189,62 @@ void AEnemy::MoveState(float DeltaTime)
 	// 이동
 	SetActorLocation(EnemyLocation + Speed * Direction * DeltaTime);
 }
+*/
+
+
+void AEnemy::MoveState(float DeltaTime)
+{
+	if (bIsAttacking) return; // 공격 중이면 이동 X
+
+	FVector EnemyLocation = GetActorLocation();
+
+	if (bChasePlayer && target)
+	{
+		// 플레이어를 쫓는 상태
+		FVector PlayerLocation = target->GetActorLocation();
+		float Distance = FVector::Dist(PlayerLocation, EnemyLocation);
+
+		if (Distance <= AttackRange)
+		{
+			mState = EEnemyState::Attack;
+			return;
+		}
+
+		// 플레이어를 향한 방향으로 이동
+		FVector Direction = PlayerLocation - EnemyLocation;
+		Direction.Normalize();
+
+		FRotator LookAtRotation = Direction.Rotation();
+		SetActorRotation(LookAtRotation);
+
+		SetActorLocation(EnemyLocation + Speed * Direction * DeltaTime);
+	}
+	else
+	{
+		// Spline을 따라 순찰하는 상태
+		if (!PatrolPath) return;
+		USplineComponent* Spline = PatrolPath->SplineComponent;
+		if (!Spline) return;
+
+		// Spline을 따라 이동
+		DistanceAlongSpline += Speed * DeltaTime;
+		float SplineLength = Spline->GetSplineLength();
+
+		if (DistanceAlongSpline >= SplineLength)
+		{
+			DistanceAlongSpline = 0.0f; // 순환 이동
+		}
+
+		FVector NewLocation = Spline->GetLocationAtDistanceAlongSpline(DistanceAlongSpline, ESplineCoordinateSpace::World);
+		FRotator NewRotation = Spline->GetRotationAtDistanceAlongSpline(DistanceAlongSpline, ESplineCoordinateSpace::World);
+
+		SetActorLocation(NewLocation);
+		SetActorRotation(NewRotation);
+	}
+}
+
+
+
 
 // 플레이어가 범위에 들어왔을 때
 void AEnemy::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

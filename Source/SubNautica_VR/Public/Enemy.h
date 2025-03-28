@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SplinePath.h"
 
 #include "Enemy.generated.h"
 
@@ -49,7 +50,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EEnemyState mState = EEnemyState::Idle;
 
-	void IdleState();
+	void IdleState(float DeltaTime);
 
 //-----------------------------------------------------------------------
 // 에너미 -> 타겟 이동
@@ -110,6 +111,14 @@ public:
 
 	// 죽음 상태 구현
 	void DieState();
+
+//-----------------------------------------------------------------------
+// Idle State 구현 : Spline Path 따라가게 만들기
+// Spline 이동 관련 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ASplinePath* PatrolPath; // Spline Actor를 참조
+
+	float DistanceAlongSpline = 0.0f; // Spline에서의 현재 위치
 
 //-----------------------------------------------------------------------
 
