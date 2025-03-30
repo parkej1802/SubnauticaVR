@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Engine/Texture2D.h"
 #include "ItemData.generated.h"
 
 UENUM(BlueprintType)
@@ -29,7 +30,7 @@ public:
     int32 ID;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    FString Name;
+    FName Name;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     EItemType Type;
@@ -52,8 +53,40 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     FString Description;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    class UStaticMesh* Mesh;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    int32 Quantity;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    bool Stackable;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    UTexture2D* Thumbnail;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    int32 Index;
+
     FItemData()
-        : ID(0), Name(TEXT("")), Type(EItemType::Resource), Area(TEXT("")),
-          Rarity(EItemRarity::Common), RequiredEquipment(TEXT("")),
-          CraftingMaterials(TEXT("")), Effects(TEXT("")), Description(TEXT("")) {}
+        : ID(0)
+        , Name(FName(TEXT("None")))
+        , Type(EItemType::Resource)
+        , Area(TEXT(""))
+        , Rarity(EItemRarity::Common)
+        , RequiredEquipment(TEXT(""))
+        , CraftingMaterials(TEXT(""))
+        , Effects(TEXT(""))
+        , Description(TEXT(""))
+        , Mesh(nullptr)
+        , Quantity(0)
+        , Stackable(false)
+        , Thumbnail(nullptr)
+        , Index(-1)
+    {
+    }
+	/* FItemData()
+		 : ID(0), Name(TEXT("")), Type(EItemType::Resource), Area(TEXT("")),
+		   Rarity(EItemRarity::Common), RequiredEquipment(TEXT("")),
+		   CraftingMaterials(TEXT("")), Effects(TEXT("")), Description(TEXT("")) {}*/
 };

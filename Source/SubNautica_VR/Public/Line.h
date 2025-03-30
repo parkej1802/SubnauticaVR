@@ -16,5 +16,4 @@ struct FInventoryLineStruct : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Line")
 	FVector2D End;
-
 };

@@ -46,7 +46,7 @@ void AItemSpawner::SpawnItem(int32 ItemID, const FVector& SpawnLocation)
     if (ItemData)
     {
         // 아이템 정보 출력 (GEngine을 사용하여 화면에 출력)
-        FString ItemInfo = FString::Printf(TEXT("아이템 이름: %s, 희귀도: %d"), *ItemData->Name, (int32)ItemData->Rarity);
+        FString ItemInfo = FString::Printf(TEXT("아이템 이름: %s, 희귀도: %d"), *ItemData->Name.ToString(), (int32)ItemData->Rarity);
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, ItemInfo);
 
         // 아이템 Actor를 생성
@@ -61,7 +61,7 @@ void AItemSpawner::SpawnItem(int32 ItemID, const FVector& SpawnLocation)
             // 아이템 초기화 함수 호출 (필요한 경우)
             NewItem->InitializeItem(ItemData);
 
-            UE_LOG(LogTemp, Log, TEXT("아이템 생성: %s, 희귀도: %d"), *ItemData->Name, (int32)ItemData->Rarity);
+            UE_LOG(LogTemp, Log, TEXT("아이템 생성: %s, 희귀도: %d"), *ItemData->Name.ToString(), (int32)ItemData->Rarity);
         }
     }
     else

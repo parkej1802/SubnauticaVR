@@ -5,6 +5,9 @@
 AItemActor::AItemActor()
 {
     PrimaryActorTick.bCanEverTick = false;
+
+    MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+    MeshComponent->SetupAttachment(RootComponent);
 }
 
 void AItemActor::BeginPlay()
@@ -25,9 +28,14 @@ void AItemActor::LoadItemData()
     FItemData* ItemData = ItemDataTable->FindRow<FItemData>(FName(*FString::FromInt(ItemID)), TEXT(""));
     if (ItemData)
     {
+        Item = ItemData;
         ItemName = ItemData->Name;
         Rarity = ItemData->Rarity;
-        UE_LOG(LogTemp, Log, TEXT("아이템 로드: %s, 희귀도: %d"), *ItemName, (int32)Rarity);
+        //UE_LOG(LogTemp, Log, TEXT("아이템 로드: %s, 희귀도: %d"), *ItemName, (int32)Rarity);
+        if (ItemData->Mesh)
+        {
+            MeshComponent->SetStaticMesh(ItemData->Mesh);
+        }
     }
     else
     {
@@ -49,11 +57,8 @@ void AItemActor::InitializeItem(FItemData* ItemData)
 {
     if (ItemData)
     {
-        // 아이템 데이터로 Actor 초기화 (예: 아이템 이름, 희귀도, 모델 등 설정)
+        // 아이템 데이터로 Actor 초기화
         this->ItemName = ItemData->Name;
         this->Rarity = ItemData->Rarity;
-
-        // 아이템에 대한 추가 설정을 할 수 있습니다.
-        // 예: 모델 설정, 특성 등
     }
 }

@@ -61,5 +61,14 @@ public:
 public:
 	UPROPERTY(EditDefaultsOnly, Category = BuildingSystem)
 	class UAC_BuildingComponent* BuildComp;
+
+// InventorySystem;
+	UPROPERTY(EditDefaultsOnly, Category = InventorySystem)
+	class UAC_InventoryComponent* InventoryComp;
+
+	UPROPERTY(EditAnywhere, Category = MainWidget)
+	TSubclassOf<UUserWidget> InventoryWidget;
+
+	class UInventoryWidget* InventoryMainUI;
 };
 

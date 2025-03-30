@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"  // DataTable 사용
 #include "ItemData.h"          // FItemData 포함
+#include "Components/StaticMeshComponent.h"
 #include "ItemActor.generated.h"
 
 
@@ -34,11 +35,16 @@ public:
 
     /** 아이템 이름 */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
-    FString ItemName;
+    FName ItemName;
 
     /** 아이템 희귀도 */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
     EItemRarity Rarity;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+    UStaticMeshComponent* MeshComponent;
+
+    FItemData* Item;
 
     /** 데이터 테이블에서 아이템 정보를 불러오는 함수 */
     void LoadItemData();

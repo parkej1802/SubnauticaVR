@@ -11,6 +11,8 @@
 #include "InputActionValue.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "ItemActor.h"
+#include "AC_InventoryComponent.h"
 
 // Sets default values for this component's properties
 UAC_PlayerAction::UAC_PlayerAction()
@@ -172,7 +174,6 @@ void UAC_PlayerAction::PlayerCatchTrace()
 	FVector StartLocation = PlayerCharacter->VRCamera->GetComponentLocation();
 	FVector ForwardVector = PlayerCharacter->VRCamera->GetForwardVector();
 
-
 	float TraceDistance = 150.0f;
 	float SphereRadius = 40.0f;
 
@@ -208,19 +209,40 @@ void UAC_PlayerAction::PlayerCatchTrace()
 			AActor* HitActor = HitResult.GetActor();
 			if (HitActor)
 			{
-				if (HitActors.Contains(HitActor))
+				AItemActor* ItemActor = Cast<AItemActor>(HitActor);
+				if (ItemActor)
 				{
-					HitActors[HitActor] += GetWorld()->GetDeltaSeconds();
-				}
-				else
-				{
-					HitActors.Add(HitActor, 0.0f);
-				}
+					if (HitActors.Contains(ItemActor))
+					{
+						HitActors[ItemActor] += GetWorld()->GetDeltaSeconds();
+					}
+					else
+					{
+						HitActors.Add(ItemActor, 0.0f);
+					}
 
-				if (HitActors[HitActor] >= 3.0f)
-				{
-					HitActor->Destroy();
-					HitActors.Remove(HitActor);
+					if (HitActors[ItemActor] >= 3.0f)
+					{	
+						int32 EmptySlot = -1;
+						for (int32 j = 0; j < 16; j++)
+						{
+							if (PlayerCharacter->InventoryComp->ItemStruct[j].Name == "None")
+							{
+								EmptySlot = j;
+								break;
+							}
+						}
+
+						if (EmptySlot != -1)
+						{
+							// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("GotStone!"));
+							ItemActor->Item->Index = EmptySlot;
+							PlayerCharacter->InventoryComp->ItemStruct.Add(EmptySlot, *ItemActor->Item);
+						}
+
+						ItemActor->Destroy();
+						HitActors.Remove(ItemActor);
+					}
 				}
 			}
 		}

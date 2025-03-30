@@ -8,6 +8,8 @@
 #include "AC_PlayerAction.h"
 #include "PlayerStatUI.h"
 #include "GameFramework/CharacterMovementComponent.h" 
+#include "AC_InventoryComponent.h"
+#include "InventoryGridWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -20,6 +22,9 @@ APlayerCharacter::APlayerCharacter()
 
 	BuildComp = CreateDefaultSubobject<UAC_BuildingComponent>(TEXT("BuildingComp"));
 	PlayerActionComp = CreateDefaultSubobject<UAC_PlayerAction>(TEXT("PlayerActionComp"));
+
+	InventoryComp = CreateDefaultSubobject<UAC_InventoryComponent>(TEXT("InventoryComp"));
+
 }
 
 // Called when the game starts or when spawned
@@ -34,7 +39,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
 
 	ShowPlayerUI();
 }

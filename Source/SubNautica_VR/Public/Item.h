@@ -29,18 +29,20 @@ public:
     int32 ItemID;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    FString ItemName;
+    FName ItemName;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    FString ItemDescription;
+    FText ItemDescription;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     EItemRarityType Rarity;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    TArray<FString> CraftingMaterials;
+    TArray<FName> CraftingMaterials;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    FString Effect;
+    FName Effect;
 	
+  
+   
 };
