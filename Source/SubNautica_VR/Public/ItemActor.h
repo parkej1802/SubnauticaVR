@@ -50,4 +50,10 @@ public:
     void LoadItemData();
 
     void InitializeItem(FItemData* ItemData);
+
+public:
+    int SpawnIndex;
+
+    void SetSpawnIndex(int Index);
+
 };

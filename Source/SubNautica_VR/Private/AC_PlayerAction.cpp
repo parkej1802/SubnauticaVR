@@ -13,6 +13,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "ItemActor.h"
 #include "AC_InventoryComponent.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 // Sets default values for this component's properties
 UAC_PlayerAction::UAC_PlayerAction()
@@ -51,6 +54,34 @@ UAC_PlayerAction::UAC_PlayerAction()
 	if (TempIA_Catch.Succeeded()) {
 		IA_Catch = TempIA_Catch.Object;
 	}
+
+	//-------------------------------------------------------------
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_SnapTurn(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SnapTurn.IA_SnapTurn'"));
+	if (TempIA_SnapTurn.Succeeded()) {
+		IA_SnapTurn = TempIA_SnapTurn.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_ShowTool(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_UseTool.IA_UseTool'"));
+	if (TempIA_ShowTool.Succeeded()) {
+		IA_ShowTool = TempIA_ShowTool.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_ShowScanner(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_ShowScanner.IA_ShowScanner'"));
+	if (TempIA_ShowScanner.Succeeded()) {
+		IA_ShowScanner = TempIA_ShowScanner.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_Scanning(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Scanning.IA_Scanning'"));
+	if (TempIA_Scanning.Succeeded()) {
+		IA_Scanner = TempIA_Scanning.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_HideScanning(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_HideScanner.IA_HideScanner'"));
+	if (TempIA_HideScanning.Succeeded()) {
+		IA_HideScanner = TempIA_HideScanning.Object;
+	}
+
+	//-------------------------------------------------------------
 }
 
 // Called when the game starts
@@ -84,6 +115,7 @@ void UAC_PlayerAction::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (bIsCatch) {
 		PlayerCatchTrace();
 	}
+
 }
 
 void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
@@ -103,24 +135,75 @@ void UAC_PlayerAction::SetupInputBinding(class UEnhancedInputComponent* Input)
 
 	if (InputSystem) {
 		InputSystem->BindAction(IA_PlayerMove, ETriggerEvent::Triggered, this, &UAC_PlayerAction::PlayerMove);
+
+
 		InputSystem->BindAction(IA_PlayerTurn, ETriggerEvent::Triggered, this, &UAC_PlayerAction::Turn);
 		InputSystem->BindAction(IA_PlayerJump, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerJump);
 		InputSystem->BindAction(IA_Swim, ETriggerEvent::Triggered, this, &UAC_PlayerAction::PlayerSwimming);
+
 		InputSystem->BindAction(IA_Catch, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerCatchStart);
 		InputSystem->BindAction(IA_Catch, ETriggerEvent::Completed, this, &UAC_PlayerAction::PlayerCatchEnd);
+
+		// 회전(컨트롤러 이용)
+		InputSystem->BindAction(IA_SnapTurn, ETriggerEvent::Triggered, this, &UAC_PlayerAction::SnapTurn);
+
+		// 무기 사용
+		InputSystem->BindAction(IA_ShowTool, ETriggerEvent::Started, this, &UAC_PlayerAction::ToolUse);
+		InputSystem->BindAction(IA_ShowTool, ETriggerEvent::Completed, this, &UAC_PlayerAction::HideTool);
+
+		// 스캐너 사용
+		InputSystem->BindAction(IA_ShowScanner, ETriggerEvent::Started, this, &UAC_PlayerAction::ShowScanner);
+		InputSystem->BindAction(IA_HideScanner, ETriggerEvent::Started, this, &UAC_PlayerAction::HideScanner);
+
+		InputSystem->BindAction(IA_Scanner, ETriggerEvent::Started, this, &UAC_PlayerAction::PlayerCatchStart);
+		InputSystem->BindAction(IA_Scanner, ETriggerEvent::Completed, this, &UAC_PlayerAction::PlayerCatchEnd);
+
 	}
 }
 
+
 void UAC_PlayerAction::PlayerMove(const struct FInputActionValue& InputValue)
 {
-	if (PlayerCharacter->bIsSwimming) return;
+	FVector2D Scale = InputValue.Get<FVector2D>();
 
-	FVector2d Scale = InputValue.Get<FVector2d>();
-	FVector Direction = PlayerCharacter->VRCamera->GetForwardVector() * Scale.X + PlayerCharacter->VRCamera->GetRightVector() * Scale.Y;
 
-	PlayerCharacter->AddMovementInput(Direction);
+	//1. 물속에서 이동
+	if (PlayerCharacter->bIsSwimming)
+	{
+		PlayerCharacter->GetCharacterMovement()->MaxFlySpeed = PlayerCharacter->SwimSpeed;
+
+		// 물속에서 이동 감속 반영
+		FVector Forward = PlayerCharacter->VRCamera->GetForwardVector();
+		FVector Right = PlayerCharacter->VRCamera->GetRightVector();
+		FVector Up = FVector::UpVector; // 수직 이동 (물속에서 뜨거나 가라앉는 경우)
+
+		// 속도를 점진적으로 줄이기 위한 감쇠 적용
+		float DragFactor = 0.8f; // 항력 계수 (조절 가능)
+		PlayerCharacter->Velocity *= DragFactor;
+
+		// 플레이어가 물속에서 입력에 따라 움직이도록 적용
+		FVector SwimDirection = (Forward * Scale.X + Right * Scale.Y).GetSafeNormal();
+		PlayerCharacter->Velocity += SwimDirection * PlayerCharacter->SwimSpeed * GetWorld()->GetDeltaSeconds();
+
+		// 최종 이동 적용
+		PlayerCharacter->AddMovementInput(PlayerCharacter->Velocity.GetSafeNormal());
+	}
+	//2. 기존 지상 이동
+	else
+	{
+		// 기존 지상 이동
+		PlayerCharacter->AddMovementInput(PlayerCharacter->VRCamera->GetForwardVector(), Scale.X);
+		PlayerCharacter->AddMovementInput(PlayerCharacter->VRCamera->GetRightVector(), Scale.Y);
+	}
 }
 
+//기존 코드
+//FVector Direction = PlayerCharacter->VRCamera->GetForwardVector() * Scale.X + PlayerCharacter->VRCamera->GetRightVector() * Scale.Y;
+//PlayerCharacter->AddMovementInput(Direction);
+
+
+
+//===============================================================================================
 void UAC_PlayerAction::Turn(const struct FInputActionValue& Values)
 {
 	FVector2d Scale = Values.Get<FVector2d>();
@@ -138,28 +221,29 @@ void UAC_PlayerAction::PlayerJump(const struct FInputActionValue& Values)
 
 void UAC_PlayerAction::InWater()
 {
-
+	/*
 	UCharacterMovementComponent* CharacterMovement = PlayerCharacter->GetCharacterMovement();
 	if (CharacterMovement)
 	{
 		CharacterMovement->SetMovementMode(MOVE_Swimming);
 	}
-	
+	*/
 }	
 
 void UAC_PlayerAction::OutWater()
 {
-
+	/*
 	UCharacterMovementComponent* CharacterMovement = PlayerCharacter->GetCharacterMovement();
 	if (CharacterMovement)
 	{
 		CharacterMovement->SetMovementMode(MOVE_Walking);
 	}
-	
+	*/
 }
 
 void UAC_PlayerAction::PlayerSwimming(const struct FInputActionValue& InputValue)
 {
+	/*
 	if (!PlayerCharacter->bIsSwimming) return;
 
 	FVector2d Scale = InputValue.Get<FVector2d>();
@@ -167,12 +251,17 @@ void UAC_PlayerAction::PlayerSwimming(const struct FInputActionValue& InputValue
 	FVector Direction = PlayerCharacter->VRCamera->GetForwardVector() * Scale.X + PlayerCharacter->VRCamera->GetRightVector() * Scale.Y;
 
 	PlayerCharacter->AddMovementInput(Direction);
+	*/
 }
 
+//---------------------------------------------------------------------------------------------
 void UAC_PlayerAction::PlayerCatchTrace()
 {
-	FVector StartLocation = PlayerCharacter->VRCamera->GetComponentLocation();
-	FVector ForwardVector = PlayerCharacter->VRCamera->GetForwardVector();
+	//FVector StartLocation = PlayerCharacter->VRCamera->GetComponentLocation();
+	//FVector ForwardVector = PlayerCharacter->VRCamera->GetForwardVector();
+
+	FVector StartLocation = PlayerCharacter->TempScanner->GetComponentLocation();
+	FVector ForwardVector = PlayerCharacter->TempScanner->GetForwardVector();
 
 	float TraceDistance = 150.0f;
 	float SphereRadius = 40.0f;
@@ -256,11 +345,76 @@ void UAC_PlayerAction::PlayerCatchTrace()
 }
 
 void UAC_PlayerAction::PlayerCatchStart(const struct FInputActionValue& InputValue)
-{	
-	bIsCatch = true;
+{
+	if (bShowScanner == true) {
+		bIsCatch = true;
+	}
 }
 
 void UAC_PlayerAction::PlayerCatchEnd(const struct FInputActionValue& InputValue)
 {
 	bIsCatch = false;
 }
+
+//---------------------------------------------------------------------------------------------
+// 컨트롤러를 활용한 회전
+void UAC_PlayerAction::SnapTurn(const struct FInputActionValue& InputValue)
+{
+	FVector2D Scale = InputValue.Get<FVector2D>();
+
+	// X축 입력값 → 좌우 회전 (Yaw)
+	PlayerCharacter->AddControllerYawInput(Scale.X * RotationSpeed);
+
+	// Y축 입력값 → 위아래 회전 (Pitch)
+	PlayerCharacter->AddControllerPitchInput(Scale.Y * RotationSpeed);
+}
+
+// 도구 사용
+void UAC_PlayerAction::ToolUse(const struct FInputActionValue& InputValue)
+{
+	// 스캐너 숨기기
+	if (bShowScanner == true) {
+		PlayerCharacter->Scanner->SetVisibility(false);
+		bShowScanner = false;
+	}
+
+	// 도구 보이게 하기
+	PlayerCharacter->bAttackCollsion = true;
+	PlayerCharacter->AttackCollisionCheck();
+}
+
+void UAC_PlayerAction::HideTool(const struct FInputActionValue& InputValue)
+{
+	PlayerCharacter->bAttackCollsion = false;
+	PlayerCharacter->AttackCollisionCheck();
+}
+
+void UAC_PlayerAction::ShowScanner(const struct FInputActionValue& InputValue)
+{
+	if (bShowScanner == false) {
+		PlayerCharacter->Scanner->SetVisibility(true);
+		bShowScanner = true;
+	}
+}
+
+void UAC_PlayerAction::HideScanner(const struct FInputActionValue& InputValue)
+{
+	if (bShowScanner == true) {
+		PlayerCharacter->Scanner->SetVisibility(false);
+		bShowScanner = false;
+	}
+}
+
+void UAC_PlayerAction::UseScanner(const struct FInputActionValue& InputValue)
+{
+	if (bShowScanner == true) {
+		FString logMsg = TEXT("ScannerUsed!");
+		GEngine->AddOnScreenDebugMessage(0, 1, FColor::Red, logMsg);
+
+		PlayerCatchTrace();
+	}
+}
+
+//---------------------------------------------------------------------------------------------
+
+

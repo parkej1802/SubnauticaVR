@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Classes/NiagaraSystem.h"
+#include "Sound/SoundCue.h"
 #include "AC_PlayerAction.generated.h"
 
 
@@ -46,6 +48,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_PlayerJump;
 
+	// 스냅턴 기능 추가
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_SnapTurn;
+
+	//--------------------------------------------------------------
 	void PlayerJump(const struct FInputActionValue& Values);
 
 	void InWater();
@@ -69,4 +76,41 @@ public:
 	bool bIsCatch = false;
 
 	TMap<AActor*, float> HitActors;
+
+	//============================================================
+	// 스냅 턴 관련 구현
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerTurn")
+	float RotationSpeed = 1.0f;
+
+	void SnapTurn(const struct FInputActionValue& InputValue);
+
+	bool bCanSnapTurn = true;
+
+	//------------------------------------------------------------
+	// 도구 사용 추가 ( 무기 사용 )
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_ShowTool;
+
+	void ToolUse(const struct FInputActionValue& InputValue);
+	void HideTool(const struct FInputActionValue& InputValue);
+
+	//------------------------------------------------------------
+	// 스캐너 액션
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_ShowScanner;
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Scanner;
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_HideScanner;
+
+	bool bShowScanner = false;
+
+	void ShowScanner(const struct FInputActionValue& InputValue);
+	void HideScanner(const struct FInputActionValue& InputValue);
+	void UseScanner(const struct FInputActionValue& InputValue);
+
+	//------------------------------------------------------------
+
 };

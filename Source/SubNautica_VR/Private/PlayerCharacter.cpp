@@ -10,6 +10,14 @@
 #include "GameFramework/CharacterMovementComponent.h" 
 #include "AC_InventoryComponent.h"
 #include "InventoryGridWidget.h"
+#include "MotionControllerComponent.h"
+#include "../../../../Plugins/Runtime/XRBase/Source/XRBase/Public/HeadMountedDisplayFunctionLibrary.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputMappingContext.h"
+#include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputAction.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -17,9 +25,77 @@ APlayerCharacter::APlayerCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// 0. Collision 설정
+	GetCapsuleComponent()->SetCollisionProfileName("Player");
+
+	// 1. 카메라 붙이기
 	VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
 	VRCamera->SetupAttachment(RootComponent);
 
+	// 2. 손 붙이기
+	LeftHand = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftHand"));
+	LeftHand->SetupAttachment(RootComponent);
+	LeftHand->SetTrackingMotionSource(TEXT("Left"));
+
+	LeftHandMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftHandMesh"));
+	LeftHandMesh->SetupAttachment(LeftHand);
+
+	// 스켈레탈 메쉬 로드
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempLeftHandMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left'"));
+
+	if (TempLeftHandMesh.Succeeded()) {
+		LeftHandMesh->SetSkeletalMesh(TempLeftHandMesh.Object);
+	}
+	
+	//---------------------------------------------------------------------------------------
+	RightHand = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightHand"));
+	RightHand->SetupAttachment(RootComponent);
+	RightHand->SetTrackingMotionSource(TEXT("Right"));
+
+	RightHandMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightHandMesh"));
+	RightHandMesh->SetupAttachment(RightHand);
+
+	// 스켈레탈 메쉬 로드
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempRightHandMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_right.SKM_MannyXR_right'"));
+
+	if (TempRightHandMesh.Succeeded()) {
+		RightHandMesh->SetSkeletalMesh(TempRightHandMesh.Object);
+	}
+
+	//-----------------------------------------------------------
+	//3. 도구 추가
+	Scanner = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Scanner"));
+	Scanner->SetupAttachment(RightHandMesh, TEXT("palm_r"));
+	Scanner->SetRelativeScale3D(FVector(0.05));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> Temp_ScannerMesh(TEXT("/Script/Engine.StaticMesh'/Game/AHS/Assets/Models/Tools/sci-fi-scanner__2_/source/scannerf.scannerf'"));
+
+	if (Temp_ScannerMesh.Succeeded()) {
+		Scanner->SetStaticMesh(Temp_ScannerMesh.Object);
+	}
+
+	TempScanner = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TempScanner"));
+	TempScanner->SetupAttachment(Scanner);
+	//ScannerCollision->SetCollisionProfileName("");
+
+	//-----------------------------------------------------------------------------------------
+	// 무기
+	CrowBar = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CrowBar"));
+	CrowBar->SetupAttachment(RightHandMesh, TEXT("palm_r"));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> Temp_CrowbarMesh(TEXT("/Script/Engine.StaticMesh'/Game/AHS/Assets/Models/Tools/crowbar/source/crowbar1.crowbar1'"));
+
+	if (Temp_CrowbarMesh.Succeeded()) {
+		CrowBar->SetStaticMesh(Temp_CrowbarMesh.Object);
+	}
+
+	CrowBarCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CrowBarCollision"));
+	CrowBarCollision->SetupAttachment(CrowBar);
+	CrowBarCollision->SetCollisionProfileName("PlayerAttack");
+	CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
+	//-----------------------------------------------------------
 	BuildComp = CreateDefaultSubobject<UAC_BuildingComponent>(TEXT("BuildingComp"));
 	PlayerActionComp = CreateDefaultSubobject<UAC_PlayerAction>(TEXT("PlayerActionComp"));
 
@@ -31,6 +107,29 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// HMD가 연결되어 있으면, HMD의 Tracking 위치를 조절해보자
+	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled()) {
+		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin(EHMDTrackingOrigin::View);
+		UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition(0);
+		//UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition(90);
+	}
+
+	// 컨트롤러 연결
+	if (PlayerActionComp)
+	{
+		UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent);
+		if (EnhancedInput)
+		{
+			PlayerActionComp->SetupInputBinding(EnhancedInput);
+		}
+	}
+	
+	//-------------------------------------------------------------------
+	// 1. 도구 설정
+	Scanner->SetVisibility(false);
+	CrowBar->SetVisibility(false);
+
 	
 }
 
@@ -41,15 +140,21 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
 
-	ShowPlayerUI();
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
+	//ShowPlayerUI();
 }
 
-// Called to bind functionality to input
+//-----------------------------------------------------------------------
+// Input 연결
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+
 }
 
+
+//-----------------------------------------------------------------------
 int APlayerCharacter::CalculateDepth(float DeltaSecond)
 {
 	float calculateZ = 0.0f - GetActorLocation().Z;
@@ -81,4 +186,34 @@ void APlayerCharacter::ShowPlayerUI()
 		PlayerMainUI->AddToViewport();
 	}
 }
+
+//-----------------------------------------------------------------------
+// 플레이어 체력 구현
+int APlayerCharacter::GetPlayerHP()
+{
+	return hp;
+}
+
+void APlayerCharacter::SetPlayerHP(int amount)
+{
+	hp += amount;
+}
+
+//-----------------------------------------------------------------------
+// 플레이어 공격 구현
+void APlayerCharacter::AttackCollisionCheck()
+{
+	if (bAttackCollsion == false) {
+		CrowBar->SetVisibility(false);
+		CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else {
+		CrowBar->SetVisibility(true);
+		CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+}
+
+
+
+//-----------------------------------------------------------------------
 

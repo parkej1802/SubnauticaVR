@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
+#include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
@@ -28,22 +30,61 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	UPROPERTY(VisibleAnywhere)
+	// 카메라
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	class UCameraComponent* VRCamera;
 
-	bool bIsSwimming = true;
+	//--------------------------------------------------------
+	// 모션 컨트롤러 연결
+	UPROPERTY(VisibleAnywhere, Category = "MotionController")
+	class UMotionControllerComponent* LeftHand;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hand")
+	class USkeletalMeshComponent* LeftHandMesh;
+
+	UPROPERTY(VisibleAnywhere, Category = "MotionController")
+	class UMotionControllerComponent* RightHand;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hand")
+	class USkeletalMeshComponent* RightHandMesh;
+
+	//---------------------------------------------------------	
+	// 현재 속도 (초기값: 정지 상태)
+	UPROPERTY(EditAnywhere, Category = "Player Settings")
+	FVector Velocity = FVector::ZeroVector;
+
+	// 수영 속도 (초기값: 300.0f)
+	UPROPERTY(EditAnywhere, Category = "Player Settings")
+	float SwimSpeed = 300.0f;
+
+	// 수영 상태 판별
+	UPROPERTY(EditAnywhere)
+	bool bIsSwimming = true;
+	//---------------------------------------------------------
+
+	// 수심
 	int32 WaterDepth = 0.0f;
 
+	// 수심 계산
 	int CalculateDepth(float DeltaSecond);
 
+	//--------------------------------------------------------
+public:
+	// 산소 최대치
 	int32 MaxOxygen = 100;
 
+	// 현재 산소
 	int32 CurrentOxygen = MaxOxygen;
 
 	float currentOxygenTime = 0.f;
+
+	//산소 소모 속도(시간 비례)
+	UPROPERTY(EditAnywhere)
 	float OxygenTime = 0.25f;
 
+
+	//--------------------------------------------------------
+	// 임시 UI
 	void ShowPlayerUI();
 
 	UPROPERTY(EditAnywhere, Category = MainWidget)
@@ -51,16 +92,54 @@ public:
 
 	class UPlayerStatUI* PlayerMainUI;
 
+
+//----------------------------------------------------------------
 // PlayerAction
 public:
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAction)
 	class UAC_PlayerAction* PlayerActionComp;
 
-	
+
 // BuildingSystem
 public:
 	UPROPERTY(EditDefaultsOnly, Category = BuildingSystem)
 	class UAC_BuildingComponent* BuildComp;
+
+//----------------------------------------------------------------
+// 플레이어 HP (에너미 상호작용 관련)
+	int32 MaxHP = 3;
+
+	// 체력
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	int32 hp = MaxHP;
+
+	int GetPlayerHP();
+	void SetPlayerHP(int amount);
+
+//----------------------------------------------------------------
+// 플레이어 공격
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UStaticMeshComponent* Scanner;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UStaticMeshComponent* TempScanner;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UStaticMeshComponent* CrowBar;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	class UBoxComponent* CrowBarCollision;
+
+	bool bAttackCollsion = false;
+
+	void AttackCollisionCheck();
+
+//----------------------------------------------------------------
+// 플레이어 스캔 액션
+
+
+
+
 
 // InventorySystem;
 	UPROPERTY(EditDefaultsOnly, Category = InventorySystem)
@@ -71,4 +150,5 @@ public:
 
 	class UInventoryWidget* InventoryMainUI;
 };
+
 

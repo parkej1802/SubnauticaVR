@@ -62,3 +62,9 @@ void AItemActor::InitializeItem(FItemData* ItemData)
         this->Rarity = ItemData->Rarity;
     }
 }
+
+void AItemActor::SetSpawnIndex(int Index)
+{
+    SpawnIndex = Index;
+}
+
