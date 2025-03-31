@@ -141,7 +141,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
 
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
-	//ShowPlayerUI();
+	ShowPlayerUI();
 }
 
 //-----------------------------------------------------------------------
