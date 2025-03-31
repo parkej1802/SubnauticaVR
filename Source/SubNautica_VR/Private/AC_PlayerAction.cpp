@@ -293,7 +293,15 @@ void UAC_PlayerAction::PlayerCatchTrace()
 
 		if (bHit)
 		{
-			DrawDebugSphere(GetWorld(), HitResult.Location, SphereRadius, 12, FColor::Green, false, 0.1f);
+			/*if (NiagaraEffect) {
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+					GetWorld(),
+					NiagaraEffect,
+					HitResult.Location,
+					FRotator::ZeroRotator,
+					FVector(0.001f)
+				);
+			}*/
 
 			AActor* HitActor = HitResult.GetActor();
 			if (HitActor)
@@ -339,13 +347,19 @@ void UAC_PlayerAction::PlayerCatchTrace()
 				}
 			}
 		}
-		else
-		{
-			DrawDebugSphere(GetWorld(), TraceEnd, SphereRadius, 12, FColor::Red, false, 0.1f);
-		}
+		/*else {
+			if (NiagaraEffect) {
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+					GetWorld(),
+					NiagaraEffect,
+					TraceEnd,
+					FRotator::ZeroRotator,
+					FVector(0.001f)
+				);
+			}
+			*/
+		//}
 	}
-
-
 }
 
 void UAC_PlayerAction::PlayerCatchStart(const struct FInputActionValue& InputValue)
