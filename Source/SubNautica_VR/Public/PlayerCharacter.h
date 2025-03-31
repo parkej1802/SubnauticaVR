@@ -137,10 +137,7 @@ public:
 //----------------------------------------------------------------
 // 플레이어 스캔 액션
 
-
-
-
-
+//----------------------------------------------------------------
 // InventorySystem;
 	UPROPERTY(EditDefaultsOnly, Category = InventorySystem)
 	class UAC_InventoryComponent* InventoryComp;
@@ -149,6 +146,22 @@ public:
 	TSubclassOf<UUserWidget> InventoryWidget;
 
 	class UInventoryWidget* InventoryMainUI;
+
+
+//----------------------------------------------------------------
+// 플레이어 엔진 복구 % UI
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EngineRestore)
+	int engineRestorePercent = 0;
+
+	int MaxEngineRestorePercent = 100;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EngineRestore)
+    class UWidgetComponent* RestorePercentWidget;
+
+
+
+	//----------------------------------------------------------------
+
 };
 
 

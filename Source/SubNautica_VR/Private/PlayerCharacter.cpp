@@ -18,6 +18,8 @@
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/InputAction.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -94,6 +96,20 @@ APlayerCharacter::APlayerCharacter()
 	CrowBarCollision->SetCollisionProfileName("PlayerAttack");
 	CrowBarCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	//-----------------------------------------------------------------------------------------
+	// 엔진 복구 % UI 표현
+	// 위젯 컴포넌트 생성
+	RestorePercentWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("RestorePercentWidget"));
+	RestorePercentWidget->SetupAttachment(RootComponent); // 플레이어 캐릭터에 부착
+
+	// 위젯 클래스 설정 (Blueprint에서 설정 가능)
+	/*
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClass(TEXT("/Game/UI/WBP_RestorePercent"));
+	if (WidgetClass.Succeeded()) {
+		RestorePercentWidget->SetWidgetClass(WidgetClass.Class);
+	}
+	*/
+
 
 	//-----------------------------------------------------------
 	BuildComp = CreateDefaultSubobject<UAC_BuildingComponent>(TEXT("BuildingComp"));
@@ -140,8 +156,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
 
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Depth: %d"), CalculateDepth(DeltaTime)));
-	ShowPlayerUI();
+	if (engineRestorePercent >= 100) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("100%!"));
+
+		UGameplayStatics::OpenLevel(GetWorld(), FName("EndingMap"));
+	}
+	
+	// ShowPlayerUI();
 }
 
 //-----------------------------------------------------------------------

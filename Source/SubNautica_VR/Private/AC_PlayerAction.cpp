@@ -337,6 +337,10 @@ void UAC_PlayerAction::PlayerCatchTrace()
 							PlayerCharacter->InventoryComp->ItemStruct.Add(EmptySlot, *ItemActor->Item);
 						}
 
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Percent Restored!"));
+						PlayerCharacter->engineRestorePercent += 40;
+
+
 						ItemActor->Destroy();
 						HitActors.Remove(ItemActor);
 					}
