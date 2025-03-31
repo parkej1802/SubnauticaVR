@@ -71,17 +71,14 @@ void UAC_InventoryComponent::ShowInventory()
 
 	if (!bIsInventoryMode) {
 		bIsInventoryMode = true;
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("InventoryMode"));
 		if (InventoryWidget)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("iNVENTORYwIDGET"));
 			InventoryMainUI = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidget);
 			InventoryMainUI->SetGrid();
 		}
 		if (InventoryMainUI)
 		{
 			InventoryMainUI->AddToViewport();
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Show Inventory!"));
 		}
 		FInputModeGameAndUI UIInputMode;
 		pc->SetInputMode(UIInputMode);

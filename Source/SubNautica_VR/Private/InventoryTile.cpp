@@ -75,7 +75,7 @@ void UInventoryTile::NativeOnDragDetected(const FGeometry& InGeometry, const FPo
     }
             
     if (Item.Quantity > 0) {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("MouseButtonDown ItemQuantity FOund")));
+        // GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("MouseButtonDown ItemQuantity FOund")));
 		Text_Name->SetText(FText::GetEmpty());
 		ImageBorder->SetBrushFromTexture(nullptr);
 		Text_Quantity->SetText(FText::GetEmpty());

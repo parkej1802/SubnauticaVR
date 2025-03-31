@@ -335,11 +335,9 @@ void UAC_PlayerAction::PlayerCatchTrace()
 							// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("GotStone!"));
 							ItemActor->Item->Index = EmptySlot;
 							PlayerCharacter->InventoryComp->ItemStruct.Add(EmptySlot, *ItemActor->Item);
+							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Percent Restored!"));
+							PlayerCharacter->engineRestorePercent += 40;
 						}
-
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Percent Restored!"));
-						PlayerCharacter->engineRestorePercent += 40;
-
 
 						ItemActor->Destroy();
 						HitActors.Remove(ItemActor);
