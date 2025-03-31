@@ -105,12 +105,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_HideScanner;
 
-	bool bShowScanner = false;
+	UPROPERTY(EditAnywhere, Category = "Effect")
+	class UNiagaraSystem* NiagaraEffect;
+
+
+	bool bShowScanner = true;
 
 	void ShowScanner(const struct FInputActionValue& InputValue);
 	void HideScanner(const struct FInputActionValue& InputValue);
 	void UseScanner(const struct FInputActionValue& InputValue);
 
 	//------------------------------------------------------------
+
 
 };
