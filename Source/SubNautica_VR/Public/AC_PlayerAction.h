@@ -105,7 +105,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_HideScanner;
 
-	bool bShowScanner = false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Scanner)
+	bool bShowScanner = true;
 
 	void ShowScanner(const struct FInputActionValue& InputValue);
 	void HideScanner(const struct FInputActionValue& InputValue);
