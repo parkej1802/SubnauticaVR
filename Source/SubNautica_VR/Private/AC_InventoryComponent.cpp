@@ -78,6 +78,7 @@ void UAC_InventoryComponent::ShowInventory()
 			InventoryMainUI->SetGrid();
 			PlayerCharacter->InventoryUI->SetWidget(InventoryMainUI);
 			PlayerCharacter->InventoryUI->SetVisibility(true);
+			PlayerCharacter->RestorePercentWidget->SetVisibility(false);
 		}
 		if (InventoryMainUI)
 		{
@@ -93,6 +94,7 @@ void UAC_InventoryComponent::ShowInventory()
 		{
 			InventoryMainUI->RemoveFromParent();
 			PlayerCharacter->InventoryUI->SetVisibility(false);
+			PlayerCharacter->RestorePercentWidget->SetVisibility(true);
 		}
 		FInputModeGameOnly GameInputMode;
 		pc->SetInputMode(GameInputMode);

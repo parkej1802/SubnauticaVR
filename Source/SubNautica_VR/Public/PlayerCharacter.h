@@ -147,10 +147,8 @@ public:
 
 	class UInventoryWidget* InventoryMainUI;
 
-	class UWidgetComponent* InventoryUI;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MainWidget)
-	TSubclassOf<UInventoryWidget> InventoryWidgetClass;
+	class UWidgetComponent* InventoryUI;
 
 //----------------------------------------------------------------
 // 플레이어 엔진 복구 % UI
