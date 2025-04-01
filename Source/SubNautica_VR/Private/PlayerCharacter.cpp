@@ -20,6 +20,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/WidgetComponent.h"
+#include "InventoryWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -110,6 +111,9 @@ APlayerCharacter::APlayerCharacter()
 	}
 	*/
 
+	InventoryUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("InventoryWidgetComponent"));
+	InventoryUI->SetupAttachment(RootComponent);
+
 
 	//-----------------------------------------------------------
 	BuildComp = CreateDefaultSubobject<UAC_BuildingComponent>(TEXT("BuildingComp"));
@@ -145,7 +149,7 @@ void APlayerCharacter::BeginPlay()
 	// 1. 도구 설정
 	Scanner->SetVisibility(false);
 	CrowBar->SetVisibility(false);
-
+	InventoryUI->SetVisibility(false);
 	
 }
 

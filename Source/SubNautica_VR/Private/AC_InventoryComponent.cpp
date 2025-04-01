@@ -8,6 +8,7 @@
 #include "InventoryWidget.h"
 #include "PlayerCharacter.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values for this component's properties
 UAC_InventoryComponent::UAC_InventoryComponent()
@@ -75,10 +76,12 @@ void UAC_InventoryComponent::ShowInventory()
 		{
 			InventoryMainUI = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidget);
 			InventoryMainUI->SetGrid();
+			PlayerCharacter->InventoryUI->SetWidget(InventoryMainUI);
+			PlayerCharacter->InventoryUI->SetVisibility(true);
 		}
 		if (InventoryMainUI)
 		{
-			InventoryMainUI->AddToViewport();
+			//InventoryMainUI->AddToViewport();
 		}
 		FInputModeGameAndUI UIInputMode;
 		pc->SetInputMode(UIInputMode);
@@ -89,6 +92,7 @@ void UAC_InventoryComponent::ShowInventory()
 		if (InventoryMainUI)
 		{
 			InventoryMainUI->RemoveFromParent();
+			PlayerCharacter->InventoryUI->SetVisibility(false);
 		}
 		FInputModeGameOnly GameInputMode;
 		pc->SetInputMode(GameInputMode);
