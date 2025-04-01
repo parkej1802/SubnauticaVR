@@ -54,4 +54,6 @@ public:
 	TSubclassOf<UUserWidget> InventoryTileWidget;
 
 	class UInventoryTile* InventoryTileUI;
+
+
 };

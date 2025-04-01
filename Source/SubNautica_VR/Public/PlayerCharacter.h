@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/WidgetInteractionComponent.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
@@ -150,6 +151,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MainWidget)
 	class UWidgetComponent* InventoryUI;
 
+	UWidgetInteractionComponent* WidgetInteraction;
 //----------------------------------------------------------------
 // 플레이어 엔진 복구 % UI
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EngineRestore)

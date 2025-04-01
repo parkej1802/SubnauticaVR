@@ -9,6 +9,7 @@
 #include "PlayerCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/WidgetComponent.h"
+#include "Framework/Application/SlateApplication.h"
 
 // Sets default values for this component's properties
 UAC_InventoryComponent::UAC_InventoryComponent()
@@ -21,6 +22,12 @@ UAC_InventoryComponent::UAC_InventoryComponent()
 	if (TempIA_InventoryMode.Succeeded())
 	{
 		IA_InventoryMode = TempIA_InventoryMode.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction>TempIA_VRInteract(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_VRInteract.IA_VRInteract'"));
+	if (TempIA_VRInteract.Succeeded())
+	{
+		IA_VRInteract = TempIA_VRInteract.Object;
 	}
 }
 
@@ -64,8 +71,8 @@ void UAC_InventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UAC_InventoryComponent::SetupInputBinding(class UEnhancedInputComponent* Input)
 {
 	Input->BindAction(IA_InventoryMode, ETriggerEvent::Started, this, &UAC_InventoryComponent::ShowInventory);
+	
 }
-
 
 void UAC_InventoryComponent::ShowInventory()
 {
@@ -82,7 +89,7 @@ void UAC_InventoryComponent::ShowInventory()
 		}
 		if (InventoryMainUI)
 		{
-			//InventoryMainUI->AddToViewport();
+			InventoryMainUI->AddToViewport();
 		}
 		FInputModeGameAndUI UIInputMode;
 		pc->SetInputMode(UIInputMode);

@@ -114,6 +114,9 @@ APlayerCharacter::APlayerCharacter()
 	InventoryUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("InventoryWidgetComponent"));
 	InventoryUI->SetupAttachment(RootComponent);
 
+	WidgetInteraction = CreateDefaultSubobject<UWidgetInteractionComponent>(TEXT("WidgetInteraction"));
+	WidgetInteraction->SetupAttachment(RootComponent);
+	WidgetInteraction->InteractionDistance = 1000.0f;
 
 	//-----------------------------------------------------------
 	BuildComp = CreateDefaultSubobject<UAC_BuildingComponent>(TEXT("BuildingComp"));

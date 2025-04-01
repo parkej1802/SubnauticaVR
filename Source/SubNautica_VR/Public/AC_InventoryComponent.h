@@ -45,6 +45,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_InventoryMode;
 
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_VRInteract;
+
 	void ShowInventory();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -54,4 +57,5 @@ public:
 	float Rows = 0.f;
 
 	TMap<int32, FItemData> ItemStruct;
+
 };
